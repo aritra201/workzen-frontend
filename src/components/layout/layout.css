@@ -1,0 +1,96 @@
+.app-shell,
+.auth-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-header,
+.auth-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  background: #fff;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.brand {
+  font-weight: 700;
+  font-size: 1.125rem;
+  color: #0f172a;
+  text-decoration: none;
+}
+
+.app-nav {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.nav-user {
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.btn-link {
+  background: none;
+  border: none;
+  color: #2563eb;
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+}
+
+.btn-link:hover {
+  text-decoration: underline;
+}
+
+.app-main {
+  flex: 1;
+  padding: 2rem 1.5rem;
+  max-width: 960px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.auth-main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.75rem;
+  box-shadow: 0 1px 3px rgb(15 23 42 / 8%);
+}
+
+.page-title {
+  margin: 0 0 0.5rem;
+  font-size: 1.5rem;
+}
+
+.page-lead {
+  margin: 0 0 1.5rem;
+  color: #64748b;
+}
+
+.loading-spinner,
+.error-message {
+  padding: 1rem;
+  text-align: center;
+}
+
+.error-message {
+  color: #b91c1c;
+  background: #fef2f2;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
