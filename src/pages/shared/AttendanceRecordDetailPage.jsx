@@ -80,11 +80,15 @@ export default function AttendanceRecordDetailPage({ mode, backTo }) {
           ? await getMyAttendanceRecord({ attendanceId })
           : await getCompanyAttendanceRecord({ attendanceId });
       setRecord(detail);
-      setLogRefreshToken((n) => n + 1);
+      if (mode !== 'employee') {
+        setLogRefreshToken((n) => n + 1);
+      }
     } catch (err) {
       setError(err.message);
     }
   }
+
+  const showActivityLog = mode === 'admin' || mode === 'member';
 
   if (!attendanceId) return <p>Missing attendanceId</p>;
   if (loading) return <LoadingSpinner />;
@@ -163,7 +167,9 @@ export default function AttendanceRecordDetailPage({ mode, backTo }) {
         );
       })}
 
-      <AttendanceActivityLogSection attendanceId={attendanceId} refreshToken={logRefreshToken} />
+      {showActivityLog ? (
+        <AttendanceActivityLogSection attendanceId={attendanceId} refreshToken={logRefreshToken} />
+      ) : null}
     </div>
   );
 }

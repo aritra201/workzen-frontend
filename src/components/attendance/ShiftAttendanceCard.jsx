@@ -127,7 +127,7 @@ export default function ShiftAttendanceCard({
       {marked ? (
         <div className="mt-4 space-y-3">
           <div className="rounded-lg bg-surface-container-low p-3">
-            <label className="text-xs font-medium text-on-surface-variant">Daily earnings (₹)</label>
+            <label className="text-xs font-medium text-on-surface-variant">Amount (₹)</label>
             <input
               type="number"
               min="0"

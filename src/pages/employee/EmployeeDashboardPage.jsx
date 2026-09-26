@@ -26,30 +26,44 @@ export default function EmployeeDashboardPage() {
   const openShift = !today?.lockAttendance && today?.canEdit;
 
   return (
-    <div className="space-y-5">
-      <section className="rounded-xl bg-surface-container-low p-5 shadow-sm">
+    <div className="space-y-6">
+      <div>
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-outline">Welcome back</p>
+        <h1 className="text-2xl font-bold">Dashboard</h1>
+      </div>
+
+      <section className="rounded-xl bg-surface-container-lowest p-5 shadow-card">
         <p className="text-lg font-semibold">Namaste, {profile?.employeeName || 'there'}</p>
         <p className="text-sm text-on-surface-variant">{profile?.employeeEmail}</p>
       </section>
 
-      <section className="rounded-xl bg-surface-container-lowest p-5 shadow-md">
-        <p className="text-xs font-semibold uppercase text-tertiary">Today</p>
-        <h2 className="mt-1 text-xl font-semibold">{openShift ? 'Shift window open' : 'Ledger locked or closed'}</h2>
-        <p className="mt-2 text-sm text-on-surface-variant">
-          Submit attendance before the company cutoff. Cutoff rule: 11:59 PM in company timezone.
-        </p>
-        <Link to={ROUTES.employee.attendance} className="mt-4 block">
-          <Button className="w-full">
-            Mark today&apos;s attendance
-            <Icon name="arrow_forward" size={18} />
-          </Button>
-        </Link>
-      </section>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <section className="rounded-xl bg-surface-container-lowest p-5 shadow-card">
+          <p className="text-xs font-semibold uppercase text-tertiary">Today</p>
+          <h2 className="mt-1 text-xl font-semibold">
+            {openShift ? 'Shift window open' : 'Ledger locked or closed'}
+          </h2>
+          <p className="mt-2 text-sm text-on-surface-variant">
+            Submit attendance before the company cutoff (11:59 PM company timezone).
+          </p>
+          <Link to={ROUTES.employee.attendance} className="mt-4 inline-block">
+            <Button>
+              Mark today&apos;s attendance
+              <Icon name="arrow_forward" size={18} />
+            </Button>
+          </Link>
+        </section>
 
-      <Link to={ROUTES.employee.attendanceHistory} className="block rounded-xl bg-surface-container-lowest p-4 shadow-card">
-        <p className="font-semibold">Attendance history</p>
-        <p className="text-sm text-on-surface-variant">Past days, unlock requests, and verification status</p>
-      </Link>
+        <Link
+          to={ROUTES.employee.attendanceHistory}
+          className="rounded-xl bg-surface-container-lowest p-5 shadow-card transition hover:shadow-md"
+        >
+          <p className="font-semibold">Attendance history</p>
+          <p className="mt-1 text-sm text-on-surface-variant">
+            Past days, unlock requests, and verification status
+          </p>
+        </Link>
+      </div>
     </div>
   );
 }

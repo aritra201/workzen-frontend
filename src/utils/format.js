@@ -13,13 +13,14 @@ export function formatDateLabel(dateKey, options = {}) {
   if (!dateKey) {
     return '—';
   }
+  const { weekday, ...intlOptions } = options;
   const date = new Date(`${dateKey}T12:00:00`);
   return date.toLocaleDateString('en-IN', {
-    weekday: options.weekday ? 'long' : undefined,
     day: 'numeric',
     month: 'short',
     year: 'numeric',
-    ...options,
+    ...(weekday ? { weekday: 'long' } : {}),
+    ...intlOptions,
   });
 }
 
