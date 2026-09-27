@@ -59,7 +59,7 @@ export default function AdminShell({ badges = {} }) {
             <Icon name="schedule" size={18} />
             <span className="text-[10px] font-semibold uppercase">Shift cutoff</span>
           </div>
-          <p className="mt-1 text-xs font-medium">Day lock: 11:59 PM (company TZ)</p>
+          <p className="mt-1 text-xs font-medium">Attendance lock: 11:59 PM</p>
         </div>
       </aside>
 

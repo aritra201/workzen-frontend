@@ -4,6 +4,12 @@ export function listEmployees() {
   return apiRequest('/api/employees/');
 }
 
+/** Public: active employees with linked accounts — id, name, email for dropdowns. */
+export function listEmployeeDropdown(companyId) {
+  const search = new URLSearchParams({ companyId }).toString();
+  return apiRequest(`/api/employees/dropdown?${search}`, { auth: false });
+}
+
 export function listPresentEmployees(params = {}) {
   const search = new URLSearchParams(params).toString();
   const qs = search ? `?${search}` : '';
