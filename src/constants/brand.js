@@ -1,5 +1,5 @@
 export const WORKZEN_LOGO_SRC =
-  'https://lh3.googleusercontent.com/aida/AEtjO1Usr42Ze4tV3MUz0TTBl6w5UVO96zl7cLb0IYeJIDslaDlWx1vWzBkmoXC7KuMx6hQUJYLgmzchqZecAWQp0Fi0O4o7NV1s2YKM3VONQC7mfwUZFSICb63OC2P5kUeN3vMlwTga4P6g7ooK1fvY6EZpvSb5ltZDIs3Mcr7TAvqmodS0v3u9CesigzVdl8CWEk9BetkG_L_pxHSbDgPXsb0-wwrsdHs55XPCOK4_nbwpb0uSEDOCl_vDdoY';
+  './public/favicon.png';
 
 export const WORKZEN_APP_ICON_SRC =
-  'https://lh3.googleusercontent.com/aida/AEtjO1W4Ge9eBT0AhuaIU3zfFcCWNjWBQmaPYqFFPX8itEIHmvzIxYyUah7-ziIfYULmVheZAdnfVa1ABcees7RE0NOC-e8s4WFCRSdSCu5ThnKzUYe_JYfe0vEojd9FtBWPRlSNsntX6XZpu9WfAUpnmVsHMYiKviijx-KDb_ejS1NfYMWDyNW2COrMQ0WaZ5xh0bAFhPaVm7eAp5Yhq1V--DvflQovv3JcvqEZHCc5fzfam0py4Z_rzLRC_Q';
+  './public/favicon.png';
