@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   confirmShift,
   submitShift,
@@ -6,12 +6,20 @@ import {
   uploadWorkPictures,
 } from '../../api/attendance.js';
 import { SHIFT_META } from '../../constants/shifts.js';
-import { formatCurrencyInr } from '../../utils/format.js';
+import { formatCurrencyInr, formatDateLabel } from '../../utils/format.js';
+import { getSubmitGeoLocation } from '../../utils/geolocation.js';
 import { statusLabel, statusTone } from '../../utils/attendanceUi.js';
+import ShiftConfirmModal from './ShiftConfirmModal.jsx';
 import Button from '../ui/Button.jsx';
 import Icon from '../ui/Icon.jsx';
 import StatusChip from '../ui/StatusChip.jsx';
 import TextField from '../ui/TextField.jsx';
+
+function hasSavedShiftSubmit(shift) {
+  const hasAmount = shift?.amount != null && !Number.isNaN(Number(shift.amount));
+  const hasComment = Boolean(String(shift?.comment || '').trim());
+  return hasAmount || hasComment;
+}
 
 export default function ShiftAttendanceCard({
   shiftKey,
@@ -26,10 +34,32 @@ export default function ShiftAttendanceCard({
   const [comment, setComment] = useState(shift?.comment ?? '');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
+  useEffect(() => {
+    setAmount(shift?.amount ?? '');
+    setComment(shift?.comment ?? '');
+  }, [shift?.amount, shift?.comment, shiftKey]);
 
   const marked = Boolean(shift?.marked);
   const locked = attendance?.lockAttendance || !attendance?.canEdit;
   const disabled = readOnly || locked;
+
+  const amountValid = amount !== '' && !Number.isNaN(Number(amount)) && Number(amount) > 0;
+  const commentValid = Boolean(comment.trim());
+  const hasSavedSubmit = hasSavedShiftSubmit(shift);
+  const canSubmitFirst = amountValid || commentValid;
+  const pictureCount = (shift?.workPictures || []).length;
+
+  function submitHint() {
+    if (hasSavedSubmit || disabled) {
+      return null;
+    }
+    if (!amountValid && !commentValid) {
+      return 'Enter shift amount or work comment to submit. Proof photos are optional.';
+    }
+    return 'Ready to submit. You can add the other field later. Photos are optional.';
+  }
 
   async function run(action) {
     setError('');
@@ -45,37 +75,46 @@ export default function ShiftAttendanceCard({
   }
 
   async function handleConfirm() {
-    await run(() => confirmShift({ shiftKey, attendanceDate }));
+    setError('');
+    setBusy(true);
+    try {
+      await confirmShift({ shiftKey, attendanceDate });
+      setConfirmOpen(false);
+      await onUpdated();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function handleSubmit() {
-    const geo = await new Promise((resolve) => {
-      if (!navigator.geolocation) {
-        resolve(null);
+    setError('');
+    setBusy(true);
+    try {
+      const geo = await getSubmitGeoLocation();
+      if (!geo) {
+        setError(
+          'Location is required to submit. Allow location when your browser asks, then tap Submit shift again.'
+        );
         return;
       }
-      navigator.geolocation.getCurrentPosition(
-        (pos) =>
-          resolve({
-            latitude: pos.coords.latitude,
-            longitude: pos.coords.longitude,
-            accuracy: pos.coords.accuracy,
-          }),
-        () => resolve(null),
-        { timeout: 8000 }
-      );
-    });
 
-    await run(() =>
-      submitShift(
-        {
-          amount: Number(amount),
-          comment: comment.trim(),
-          geoLocation: geo,
-        },
-        { shiftKey, attendanceDate }
-      )
-    );
+      const body = { geoLocation: geo };
+      if (amountValid) {
+        body.amount = Number(amount);
+      }
+      if (commentValid) {
+        body.comment = comment.trim();
+      }
+
+      await submitShift(body, { shiftKey, attendanceDate });
+      await onUpdated();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function handlePatch() {
@@ -118,11 +157,24 @@ export default function ShiftAttendanceCard({
           ) : null}
         </div>
         {!disabled && !marked ? (
-          <Button size="sm" onClick={handleConfirm} disabled={busy}>
+          <Button size="sm" onClick={() => setConfirmOpen(true)} disabled={busy}>
             Confirm
           </Button>
         ) : null}
       </div>
+
+      <ShiftConfirmModal
+        open={confirmOpen}
+        shiftLabel={meta.label}
+        dateLabel={formatDateLabel(attendance?.date, { weekday: true })}
+        loading={busy}
+        onCancel={() => {
+          if (!busy) {
+            setConfirmOpen(false);
+          }
+        }}
+        onConfirm={handleConfirm}
+      />
 
       {marked ? (
         <div className="mt-4 space-y-3">
@@ -155,7 +207,7 @@ export default function ShiftAttendanceCard({
 
           <div>
             <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-on-surface-variant">
-              Proof of work
+              Proof of work {pictureCount ? `(${pictureCount})` : '(optional)'}
             </p>
             <div className="flex flex-wrap gap-2">
               {(shift?.workPictures || []).map((url) => (
@@ -171,14 +223,21 @@ export default function ShiftAttendanceCard({
           </div>
 
           {!disabled ? (
-            <div className="flex flex-wrap gap-2">
-              {!shift?.amount || !shift?.comment ? (
-                <Button onClick={handleSubmit} disabled={busy || !amount || !comment.trim()}>
-                  Submit shift
+            <div className="space-y-2">
+              {submitHint() ? (
+                <p className="text-xs text-on-surface-variant">{submitHint()}</p>
+              ) : null}
+              {hasSavedSubmit ? (
+                <Button
+                  variant="secondary"
+                  onClick={handlePatch}
+                  disabled={busy || (!amountValid && !commentValid)}
+                >
+                  Save changes
                 </Button>
               ) : (
-                <Button variant="secondary" onClick={handlePatch} disabled={busy}>
-                  Save changes
+                <Button onClick={handleSubmit} disabled={busy || !canSubmitFirst}>
+                  Submit shift
                 </Button>
               )}
             </div>
