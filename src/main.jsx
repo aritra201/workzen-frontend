@@ -3,6 +3,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider } from './context/AuthContext.jsx';
 import { ThemeProvider } from './context/ThemeContext.jsx';
+import { ToastProvider } from './context/ToastContext.jsx';
 import { getGoogleClientId } from './utils/googleClientId.js';
 import App from './App.jsx';
 import './index.css';
@@ -20,9 +21,11 @@ createRoot(document.getElementById('root')).render(
   <BrowserRouter>
     <RootProviders>
       <ThemeProvider>
-        <AuthProvider>
-          <App />
-        </AuthProvider>
+        <ToastProvider>
+          <AuthProvider>
+            <App />
+          </AuthProvider>
+        </ToastProvider>
       </ThemeProvider>
     </RootProviders>
   </BrowserRouter>

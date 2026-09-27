@@ -31,6 +31,8 @@ export function statusTone(status, lockAttendance) {
       return 'rejected';
     case SHIFT_STATUS.PENDING_VERIFICATION:
       return 'pending';
+    case SHIFT_STATUS.AWAITING_ATTENDANCE:
+      return 'neutral';
     default:
       return 'neutral';
   }
@@ -47,6 +49,8 @@ export function statusLabel(status, lockAttendance) {
       return 'Rejected';
     case SHIFT_STATUS.PENDING_VERIFICATION:
       return 'Pending verification';
+    case SHIFT_STATUS.AWAITING_ATTENDANCE:
+      return 'Awaiting attendance';
     default:
       return 'Not submitted';
   }

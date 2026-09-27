@@ -51,6 +51,9 @@ export function attendanceVerificationStatus(shifts) {
   if (statuses.some((s) => s === SHIFT_STATUS.PENDING_VERIFICATION)) {
     return { label: 'Pending verification', tone: 'pending' };
   }
+  if (statuses.some((s) => s === SHIFT_STATUS.AWAITING_ATTENDANCE)) {
+    return { label: 'Awaiting attendance', tone: 'neutral' };
+  }
   if (statuses.every((s) => s === SHIFT_STATUS.VERIFIED)) {
     return { label: 'Verified', tone: 'verified' };
   }

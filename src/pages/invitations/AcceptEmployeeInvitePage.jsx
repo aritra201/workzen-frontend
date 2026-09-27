@@ -78,8 +78,13 @@ export default function AcceptEmployeeInvitePage() {
     <div className="mx-auto w-full max-w-md rounded-xl bg-surface-container-lowest p-8 shadow-md">
       <h1 className="text-2xl font-semibold">Join as employee</h1>
       <p className="mt-2 text-sm text-on-surface-variant">
-        {preview?.companyName} invited <strong>{preview?.email}</strong>
+        <strong>{preview?.companyName || 'Your company'}</strong> invites you.
       </p>
+      {(preview?.employeeEmail || preview?.email) ? (
+        <p className="mt-1 text-xs text-outline">
+          {preview.employeeEmail || preview.email}
+        </p>
+      ) : null}
       <ErrorMessage message={error} className="mt-4" />
       <form onSubmit={handleAccept} className="mt-6 space-y-4">
         <TextField

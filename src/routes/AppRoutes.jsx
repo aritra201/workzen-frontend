@@ -71,6 +71,8 @@ export default function AppRoutes() {
         <Route path={ROUTES.resetPassword} element={<ResetPasswordPage />} />
         <Route path={ROUTES.inviteMember} element={<AcceptMemberInvitePage />} />
         <Route path={ROUTES.inviteEmployee} element={<AcceptEmployeeInvitePage />} />
+        <Route path={ROUTES.acceptMemberInvite} element={<AcceptMemberInvitePage />} />
+        <Route path={ROUTES.acceptEmployeeInvite} element={<AcceptEmployeeInvitePage />} />
       </Route>
 
       <Route

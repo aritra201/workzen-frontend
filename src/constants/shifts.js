@@ -13,6 +13,7 @@ export const SHIFT_META = {
 };
 
 export const SHIFT_STATUS = {
+  AWAITING_ATTENDANCE: 'awaiting_attendance',
   PENDING_VERIFICATION: 'pending_verification',
   VERIFIED: 'verified',
   REJECTED: 'rejected',

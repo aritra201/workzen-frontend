@@ -7,6 +7,9 @@ export const ROUTES = {
   resetPassword: '/reset-password',
   inviteMember: '/invite/member',
   inviteEmployee: '/invite/employee',
+  /** Legacy paths from invitation emails (keep for old links) */
+  acceptMemberInvite: '/accept-member-invite',
+  acceptEmployeeInvite: '/accept-employee-invite',
   admin: {
     root: '/admin',
     dashboard: '/admin/dashboard',

@@ -23,6 +23,8 @@ export function formatShiftStatus(status) {
   switch (status) {
     case SHIFT_STATUS.PENDING_VERIFICATION:
       return 'Pending verification';
+    case SHIFT_STATUS.AWAITING_ATTENDANCE:
+      return 'Awaiting attendance';
     case SHIFT_STATUS.VERIFIED:
       return 'Verified';
     case SHIFT_STATUS.REJECTED:
@@ -44,6 +46,9 @@ export function shiftStatusChipTone(status) {
   }
   if (status === SHIFT_STATUS.PENDING_VERIFICATION) {
     return 'pending';
+  }
+  if (status === SHIFT_STATUS.AWAITING_ATTENDANCE) {
+    return 'neutral';
   }
   return 'neutral';
 }

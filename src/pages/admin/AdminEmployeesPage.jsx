@@ -91,7 +91,7 @@ export default function AdminEmployeesPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold">Employees & labour</h1>
+        <h1 className="text-2xl font-bold">Employees</h1>
         <Button onClick={() => setInviteOpen(true)}>Invite employee</Button>
       </div>
       <ErrorMessage message={error} />

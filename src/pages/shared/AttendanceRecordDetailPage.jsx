@@ -92,7 +92,9 @@ export default function AttendanceRecordDetailPage({ mode, backTo }) {
 
   if (!attendanceId) return <p>Missing attendanceId</p>;
   if (loading) return <LoadingSpinner />;
-  if (!record) return <ErrorMessage message={error || 'Record not found'} />;
+  if (!record) {
+    return <ErrorMessage message={error || 'Record not found'} display="inline" />;
+  }
 
   const shifts = record.shifts || {};
   const employeeName = getRecordEmployeeName(record);

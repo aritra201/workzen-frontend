@@ -12,7 +12,7 @@ export default function AuthShell() {
             <img src={WORKZEN_LOGO_SRC} alt="WorkZen" className="h-8" />
             <span className="text-sm font-semibold">WorkZen</span>
             <span className="hidden rounded-full bg-surface-container-high px-2 py-0.5 text-[10px] font-semibold uppercase text-on-surface-variant sm:inline">
-              Labour & Wage Suite
+              Employee & Wage Suite
             </span>
           </Link>
           <Link to={ROUTES.login} className="flex items-center gap-1 text-sm text-on-surface-variant hover:text-primary">

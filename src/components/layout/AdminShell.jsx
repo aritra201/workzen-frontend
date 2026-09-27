@@ -21,7 +21,7 @@ export default function AdminShell({ badges = {} }) {
             <div className="flex flex-col">
               <span className="text-sm font-semibold leading-tight">WorkZen Admin</span>
               <span className="text-[10px] font-semibold uppercase tracking-wide text-outline">
-                Labour & Payroll
+                Employee & Payroll
               </span>
             </div>
           </div>
