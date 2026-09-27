@@ -98,21 +98,22 @@ export default function AttendanceRecordDetailPage({ mode, backTo }) {
   const employeeName = getRecordEmployeeName(record);
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto max-w-4xl space-y-4">
       <Link to={backTo} className="text-sm font-semibold text-primary">← Back</Link>
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex items-center gap-3">
+
+      <header className="flex flex-wrap items-start justify-between gap-3 border-b border-outline-variant/40 pb-3">
+        <div className="flex min-w-0 items-center gap-3">
           {mode !== 'employee' ? (
             <PersonAvatar
               name={employeeName}
               email={record.employee?.email}
               src={getRecordEmployeePicture(record)}
-              size={48}
+              size={40}
             />
           ) : null}
-          <div>
-            <h1 className="text-2xl font-bold">Attendance record</h1>
-            <p className="text-sm text-on-surface-variant">
+          <div className="min-w-0">
+            <h1 className="text-lg font-semibold tracking-tight">Attendance record</h1>
+            <p className="label-caps text-on-surface-variant">
               {employeeName} · {formatDateLabel(record.date)}
             </p>
           </div>
@@ -120,43 +121,45 @@ export default function AttendanceRecordDetailPage({ mode, backTo }) {
         <StatusChip tone={record.lockAttendance ? 'locked' : 'pending'}>
           {record.lockAttendance ? 'Locked' : 'Open'}
         </StatusChip>
-      </div>
+      </header>
+
       <ErrorMessage message={error} />
 
       {Object.entries(shifts).map(([key, shift]) => {
         if (!shift) return null;
         const shiftKey = responseKeyToApiShiftKey(key);
         return (
-          <article key={key} className="rounded-xl bg-surface-container-lowest p-4 shadow-card">
-            <div className="flex flex-wrap items-center justify-between gap-2">
+          <article key={key} className="ledger-panel p-3 shadow-card">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-outline-variant/30 pb-2">
               <ShiftHighlightChips shifts={{ [key]: shift }} />
               <StatusChip tone={shiftStatusChipTone(shift.status)}>
                 {formatShiftStatus(shift.status)}
               </StatusChip>
             </div>
-            <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_minmax(240px,300px)]">
+            <div className="mt-3 grid gap-3 lg:grid-cols-[1fr_minmax(200px,260px)]">
               <ShiftWorkCommentPanel
                 comment={shift.comment}
-                className="order-1 lg:order-2 lg:sticky lg:top-4 lg:self-start"
+                className="order-1 lg:order-2 lg:sticky lg:top-20 lg:self-start"
               />
-              <div className="order-2 min-w-0 space-y-4 lg:order-1">
-                <div className="rounded-lg bg-surface-container-low px-4 py-3">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-on-surface-variant">Amount</p>
-                  <p className="mt-1 tabular-nums text-2xl font-bold text-on-surface">
+              <div className="order-2 min-w-0 space-y-3 lg:order-1">
+                <div className="rounded-md border border-outline-variant/30 bg-surface-container-lowest px-3 py-2">
+                  <p className="label-caps text-on-surface-variant">Amount</p>
+                  <p className="label-numeric mt-0.5 text-xl font-semibold text-on-surface">
                     {shift.amount != null ? formatCurrencyInr(shift.amount) : 'N/A'}
                   </p>
                 </div>
-                <WorkPicturesGallery shift={shift} />
+                <WorkPicturesGallery shift={shift} compact />
                 {mode === 'admin' && shift.status === 'pending_verification' ? (
                   <Button size="sm" onClick={() => handleVerify(shiftKey)}>Verify shift</Button>
                 ) : null}
                 {(mode === 'admin' || mode === 'employee') && (
-                  <div className="flex gap-2">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
                     <TextField
                       id={`reply-${key}`}
                       value={reply}
                       onChange={(e) => setReply(e.target.value)}
                       placeholder="Thread reply"
+                      className="flex-1"
                     />
                     <Button size="sm" variant="secondary" onClick={() => handleReply(shiftKey)}>Reply</Button>
                   </div>

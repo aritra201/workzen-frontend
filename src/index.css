@@ -1,5 +1,7 @@
 @import 'tailwindcss';
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
 
@@ -59,8 +61,54 @@
 
   --radius-sm: 0.25rem;
   --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
-  --radius-xl: 1rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+
+  --font-mono-numeric: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+/* Obsidian Ledger tokens (stitch_workzen_attendance_ui_design/obsidian_ledger) */
+.dark {
+  --color-surface: #0f131c;
+  --color-surface-dim: #0f131c;
+  --color-surface-bright: #353942;
+  --color-surface-container-lowest: #0a0e16;
+  --color-surface-container-low: #181c24;
+  --color-surface-container: #1c2028;
+  --color-surface-container-high: #262a33;
+  --color-surface-container-highest: #31353e;
+  --color-on-surface: #dfe2ee;
+  --color-on-surface-variant: #bbcac6;
+  --color-inverse-surface: #dfe2ee;
+  --color-inverse-on-surface: #2c3039;
+  --color-outline: #859490;
+  --color-outline-variant: #3c4947;
+  --color-surface-tint: #4fdbc8;
+  --color-primary: #4fdbc8;
+  --color-on-primary: #003731;
+  --color-primary-container: #14b8a6;
+  --color-on-primary-container: #00423b;
+  --color-inverse-primary: #006b5f;
+  --color-secondary: #44e2cd;
+  --color-on-secondary: #003731;
+  --color-secondary-container: #03c6b2;
+  --color-on-secondary-container: #004d44;
+  --color-tertiary: #6bd8cb;
+  --color-on-tertiary: #003732;
+  --color-tertiary-container: #44b5a8;
+  --color-on-tertiary-container: #00423c;
+  --color-error: #ffb4ab;
+  --color-on-error: #690005;
+  --color-error-container: #93000a;
+  --color-on-error-container: #ffdad6;
+  --color-primary-fixed: #71f8e4;
+  --color-primary-fixed-dim: #4fdbc8;
+  --color-secondary-fixed: #62fae3;
+  --color-tertiary-fixed: #89f5e7;
+  --color-on-tertiary-fixed-variant: #005049;
+  --color-background: #0f131c;
+  --color-on-background: #dfe2ee;
+  --color-surface-variant: #31353e;
 }
 
 @layer base {
@@ -109,6 +157,34 @@
 
   .shadow-header {
     box-shadow: 0 1px 8px rgba(0, 0, 0, 0.04);
+  }
+
+  .dark .shadow-card {
+    box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.04);
+  }
+
+  .dark .shadow-header {
+    box-shadow: none;
+  }
+
+  .ledger-panel {
+    @apply rounded-lg border border-outline-variant/50 bg-surface-container-low;
+  }
+
+  .label-caps {
+    font-family: var(--font-mono-numeric);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    line-height: 14px;
+    text-transform: uppercase;
+  }
+
+  .label-numeric {
+    font-family: var(--font-mono-numeric);
+    font-size: 13px;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
   }
 }
 

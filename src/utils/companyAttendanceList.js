@@ -45,7 +45,7 @@ export function sumShiftAmounts(shifts) {
 export function attendanceVerificationStatus(shifts) {
   const active = Object.values(shifts || {}).filter(Boolean);
   if (!active.length) {
-    return { label: 'No shifts', tone: 'neutral' };
+    return { label: 'Not Marked Attendance', tone: 'neutral' };
   }
   const statuses = active.map((s) => s.status);
   if (statuses.some((s) => s === SHIFT_STATUS.PENDING_VERIFICATION)) {

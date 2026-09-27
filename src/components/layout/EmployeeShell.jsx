@@ -5,6 +5,7 @@ import { EMPLOYEE_NAV } from '../../constants/navigation.js';
 import { ROUTES } from '../../constants/routes.js';
 import Icon from '../ui/Icon.jsx';
 import Button from '../ui/Button.jsx';
+import ThemeToggle from '../ui/ThemeToggle.jsx';
 import EmployeeProfileGate from '../auth/EmployeeProfileGate.jsx';
 
 const PAGE_TITLES = {
@@ -29,7 +30,7 @@ export default function EmployeeShell() {
 
   return (
     <div className="min-h-screen bg-background">
-      <aside className="fixed left-0 top-0 z-50 flex h-full w-72 flex-col justify-between bg-surface-container-lowest shadow-header">
+      <aside className="fixed left-0 top-0 z-50 flex h-full w-72 flex-col justify-between border-r border-outline-variant/40 bg-surface-container-lowest shadow-header dark:shadow-none">
         <div>
           <div className="flex h-16 items-center gap-2 px-4">
             <img src={WORKZEN_LOGO_SRC} alt="WorkZen" className="h-8 w-auto" />
@@ -74,14 +75,15 @@ export default function EmployeeShell() {
       </aside>
 
       <div className="pl-72">
-        <header className="fixed left-72 right-0 top-0 z-40 flex h-16 items-center justify-between border-b border-surface-container-high/80 bg-surface-container-lowest/90 px-6 backdrop-blur-xl shadow-header">
+        <header className="fixed left-72 right-0 top-0 z-40 flex h-16 items-center justify-between border-b border-outline-variant/40 bg-surface-container-lowest/90 px-6 backdrop-blur-xl shadow-header dark:bg-surface-container-lowest/95 dark:shadow-none">
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-wider text-outline">
               {primaryMembership?.companyName || 'Company'}
             </p>
             <p className="text-sm font-semibold">{pageTitle}</p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
             <span className="hidden text-sm text-on-surface-variant md:inline">{user?.email}</span>
             <Button variant="ghost" size="sm" onClick={logout}>Log out</Button>
           </div>

@@ -17,16 +17,16 @@ export default function EmployeeAttendanceHistoryTable({
   onRequestUnlock,
 }) {
   return (
-    <div className="overflow-hidden rounded-xl bg-surface-container-lowest shadow-card">
+    <div className="overflow-hidden rounded-lg border border-outline-variant/40 bg-surface-container-lowest shadow-card">
       <table className="w-full text-left text-sm">
-        <thead className="bg-surface-container-low text-xs uppercase text-outline">
+        <thead className="border-b border-outline-variant/40 bg-surface-container-low">
           <tr>
-            <th className="px-4 py-3">Date</th>
-            <th className="px-4 py-3">Shift</th>
-            <th className="px-4 py-3">Amount</th>
-            <th className="px-4 py-3">Status</th>
-            <th className="px-4 py-3">Lock</th>
-            <th className="px-4 py-3 text-right">Actions</th>
+            <th className="label-caps px-3 py-2 text-outline">Date</th>
+            <th className="label-caps px-3 py-2 text-outline">Shift</th>
+            <th className="label-caps px-3 py-2 text-outline">Amount</th>
+            <th className="label-caps px-3 py-2 text-outline">Status</th>
+            <th className="label-caps px-3 py-2 text-outline">Lock</th>
+            <th className="label-caps px-3 py-2 text-right text-outline">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -43,23 +43,23 @@ export default function EmployeeAttendanceHistoryTable({
               const attendanceKey = String(row.attendanceId);
               const unlockPending = pendingAttendanceIds?.has(attendanceKey);
               return (
-                <tr key={row.attendanceId} className="border-t border-surface-container-high">
-                  <td className="px-4 py-3">{formatDateLabel(row.date)}</td>
-                  <td className="px-4 py-3">
+                <tr key={row.attendanceId} className="border-t border-outline-variant/30 hover:bg-surface-container-high/50">
+                  <td className="px-3 py-2">{formatDateLabel(row.date)}</td>
+                  <td className="px-3 py-2">
                     <ShiftHighlightChips shifts={row.shifts} />
                   </td>
-                  <td className="px-4 py-3 tabular-nums text-on-surface-variant">
+                  <td className="label-numeric px-3 py-2 text-on-surface">
                     {totalAmount != null ? formatCurrencyInr(totalAmount) : 'N/A'}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-3 py-2">
                     <StatusChip tone={verification.tone}>{verification.label}</StatusChip>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-3 py-2">
                     <StatusChip tone={row.lockAttendance ? 'locked' : 'pending'}>
                       {row.lockAttendance ? 'Locked' : 'Open'}
                     </StatusChip>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-3 py-2">
                     <div className="flex flex-wrap items-center justify-end gap-2">
                       {showUnlockAction && row.lockAttendance ? (
                         <Button
