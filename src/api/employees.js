@@ -11,15 +11,16 @@ export function listEmployees(params = {}) {
   return apiRequest(qs ? `/api/employees/?${qs}` : '/api/employees/');
 }
 
-/** Authenticated admin dropdown (active employees with linked accounts). */
-export function listEmployeeDropdownOptions() {
-  return apiRequest('/api/employees/dropdown-options');
-}
-
-/** Public: active employees with linked accounts — id, name, email for dropdowns. */
+/** Public employee dropdown — id, name, email (requires companyId). */
 export function listEmployeeDropdown(companyId) {
   const search = new URLSearchParams({ companyId }).toString();
   return apiRequest(`/api/employees/dropdown?${search}`, { auth: false });
+}
+
+/** Alias of listEmployeeDropdown (same public API). */
+export function listEmployeeDropdownOptions(companyId) {
+  const search = new URLSearchParams({ companyId }).toString();
+  return apiRequest(`/api/employees/dropdown-options?${search}`, { auth: false });
 }
 
 export function listPresentEmployees(params = {}) {

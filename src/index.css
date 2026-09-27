@@ -214,6 +214,29 @@
     font-weight: 500;
     font-variant-numeric: tabular-nums;
   }
+
+  .google-signin-host {
+    position: relative;
+    z-index: 1;
+    min-height: 3rem;
+  }
+
+  .google-signin-container {
+    width: 100% !important;
+    min-height: 3rem;
+  }
+
+  .google-signin-container > div {
+    width: 100% !important;
+    display: flex !important;
+    justify-content: center;
+  }
+
+  .google-signin-container iframe {
+    pointer-events: auto !important;
+    max-width: 100% !important;
+    min-height: 3rem !important;
+  }
 }
 
 .material-symbols-outlined {

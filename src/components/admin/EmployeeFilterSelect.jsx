@@ -1,5 +1,6 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { listEmployeeDropdownOptions } from '../../api/employees.js';
+import { useAuth } from '../../hooks/useAuth.js';
 import ErrorMessage from '../common/ErrorMessage.jsx';
 import Icon from '../ui/Icon.jsx';
 
@@ -53,11 +54,18 @@ export default function EmployeeFilterSelect({
   const [error, setError] = useState('');
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
+  const { primaryMembership } = useAuth();
+  const companyId = primaryMembership?.companyId;
 
   useEffect(() => {
     let cancelled = false;
+    if (!companyId) {
+      setOptions([]);
+      setLoading(false);
+      return undefined;
+    }
     setLoading(true);
-    listEmployeeDropdownOptions()
+    listEmployeeDropdownOptions(companyId)
       .then((data) => {
         if (!cancelled) {
           setOptions(data.employees || []);
@@ -76,7 +84,7 @@ export default function EmployeeFilterSelect({
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [companyId]);
 
   useEffect(() => {
     function handlePointerDown(event) {
