@@ -33,7 +33,7 @@ export function formatAttendanceShiftNames(shifts) {
 export function sumShiftAmounts(shifts) {
   let total = 0;
   let hasAmount = false;
-  for (const shift of Object.values(shifts || {})) {
+  for (const shift of Object.values(shiftsCountedForAttendanceStatus(shifts))) {
     if (shift?.amount != null && !Number.isNaN(Number(shift.amount))) {
       total += Number(shift.amount);
       hasAmount = true;
@@ -42,8 +42,27 @@ export function sumShiftAmounts(shifts) {
   return hasAmount ? total : null;
 }
 
+function shiftsCountedForAttendanceStatus(shifts) {
+  const counted = {};
+  for (const [key, shift] of Object.entries(shifts || {})) {
+    if (!shift) {
+      continue;
+    }
+    if (key === 'extraDay' || key === 'extraNight') {
+      if (shift.marked) {
+        counted[key] = shift;
+      }
+      continue;
+    }
+    if (shift.marked) {
+      counted[key] = shift;
+    }
+  }
+  return counted;
+}
+
 export function attendanceVerificationStatus(shifts) {
-  const active = Object.values(shifts || {}).filter(Boolean);
+  const active = Object.values(shiftsCountedForAttendanceStatus(shifts));
   if (!active.length) {
     return { label: 'Not Marked Attendance', tone: 'neutral' };
   }

@@ -44,7 +44,7 @@ export default function EmployeeDashboardPage() {
             {openShift ? 'Shift window open' : 'Ledger locked or closed'}
           </h2>
           <p className="mt-2 text-sm text-on-surface-variant">
-            Submit attendance before the company cutoff (11:59 PM company timezone).
+            Submit attendance before the attendance lock (11:59 PM).
           </p>
           <Link to={ROUTES.employee.attendance} className="mt-4 inline-block">
             <Button>

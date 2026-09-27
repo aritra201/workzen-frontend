@@ -11,6 +11,7 @@ import Button from '../../components/ui/Button.jsx';
 import TextField from '../../components/ui/TextField.jsx';
 import ErrorMessage from '../../components/common/ErrorMessage.jsx';
 import LoadingSpinner from '../../components/common/LoadingSpinner.jsx';
+import ExtraShiftDeclareConfirmModal from '../../components/admin/ExtraShiftDeclareConfirmModal.jsx';
 
 const DECLARATIONS_PAGE_SIZE = 10;
 
@@ -26,6 +27,8 @@ export default function AdminExtraShiftsPage() {
   const [pageLoading, setPageLoading] = useState(true);
   const [listLoading, setListLoading] = useState(false);
   const [error, setError] = useState('');
+  const [declareConfirmOpen, setDeclareConfirmOpen] = useState(false);
+  const [declareBusy, setDeclareBusy] = useState(false);
 
   const applyEmployeeSelection = useCallback((employeeId, row) => {
     if (!row) {
@@ -152,11 +155,31 @@ export default function AdminExtraShiftsPage() {
     });
   }
 
-  async function handleDeclare(event) {
+  const shiftsToDeclare = useMemo(() => {
+    const labels = [];
+    if (canDeclareDay && extraDayChecked) {
+      labels.push('Extra day shift');
+    }
+    if (canDeclareNight && extraNightChecked) {
+      labels.push('Extra night shift');
+    }
+    return labels;
+  }, [canDeclareDay, canDeclareNight, extraDayChecked, extraNightChecked]);
+
+  function handleDeclare(event) {
     event.preventDefault();
     if (!canSubmit) {
       return;
     }
+    setDeclareConfirmOpen(true);
+  }
+
+  async function confirmDeclare() {
+    if (!canSubmit) {
+      return;
+    }
+    setDeclareBusy(true);
+    setError('');
     try {
       await declareExtraShift({
         employeeId: form.employeeId,
@@ -164,6 +187,7 @@ export default function AdminExtraShiftsPage() {
         extraDayShift: canDeclareDay && extraDayChecked,
         extraNightShift: canDeclareNight && extraNightChecked,
       });
+      setDeclareConfirmOpen(false);
       await loadExtraShifts({
         employeeId: form.employeeId,
         declarationsPage,
@@ -172,6 +196,8 @@ export default function AdminExtraShiftsPage() {
       });
     } catch (err) {
       setError(err.message);
+    } finally {
+      setDeclareBusy(false);
     }
   }
 
@@ -242,6 +268,16 @@ export default function AdminExtraShiftsPage() {
           </Button>
         </div>
       </form>
+
+      <ExtraShiftDeclareConfirmModal
+        open={declareConfirmOpen}
+        employeeName={selectedExtraRow?.employeeName}
+        date={date}
+        shiftLabels={shiftsToDeclare}
+        loading={declareBusy}
+        onCancel={() => !declareBusy && setDeclareConfirmOpen(false)}
+        onConfirm={confirmDeclare}
+      />
 
       <section className="space-y-2">
         <div className="flex flex-wrap items-end justify-between gap-3">

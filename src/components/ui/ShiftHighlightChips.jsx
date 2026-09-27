@@ -10,12 +10,33 @@ const HIGHLIGHT_CLASS = {
   extraNight: 'bg-orange-100 text-orange-900 ring-1 ring-orange-200/80',
 };
 
-export function getActiveShiftResponseKeys(shifts) {
-  return SHIFT_ORDER.filter((key) => Boolean(shifts?.[key]));
+function isShiftShownInAttendanceList(key, shift) {
+  if (!shift) {
+    return false;
+  }
+  if (key === 'extraDay' || key === 'extraNight') {
+    return Boolean(shift.declared && shift.marked);
+  }
+  return Boolean(shift.marked);
 }
 
-export default function ShiftHighlightChips({ shifts, className = '' }) {
-  const keys = getActiveShiftResponseKeys(shifts);
+/** @param {{ includeDeclaredExtras?: boolean }} options */
+export function getActiveShiftResponseKeys(shifts, options = {}) {
+  const { includeDeclaredExtras = false } = options;
+  return SHIFT_ORDER.filter((key) => {
+    const shift = shifts?.[key];
+    if (!shift) {
+      return false;
+    }
+    if (includeDeclaredExtras && (key === 'extraDay' || key === 'extraNight')) {
+      return Boolean(shift.declared);
+    }
+    return isShiftShownInAttendanceList(key, shift);
+  });
+}
+
+export default function ShiftHighlightChips({ shifts, includeDeclaredExtras = false, className = '' }) {
+  const keys = getActiveShiftResponseKeys(shifts, { includeDeclaredExtras });
 
   if (!keys.length) {
     return <StatusChip tone="neutral">No shift</StatusChip>;

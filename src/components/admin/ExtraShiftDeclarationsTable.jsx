@@ -73,7 +73,7 @@ export default function ExtraShiftDeclarationsTable({ rows, date, emptyMessage }
                     </div>
                   </td>
                   <td className="px-3 py-2.5">
-                    <ShiftHighlightChips shifts={shiftChips} />
+                    <ShiftHighlightChips shifts={shiftChips} includeDeclaredExtras />
                   </td>
                   <td className="px-3 py-2.5">
                     <StatusChip tone={status.tone}>{status.label}</StatusChip>
