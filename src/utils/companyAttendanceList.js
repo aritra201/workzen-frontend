@@ -1,5 +1,5 @@
 import { SHIFT_STATUS } from '../constants/shifts.js';
-import { formatShiftResponseKey } from './shiftLabels.js';
+import { formatShiftResponseKey, formatShiftStatus, shiftStatusChipTone } from './shiftLabels.js';
 
 /** @param {Record<string, unknown> | null | undefined} data */
 export function getCompanyAttendanceListItems(data) {
@@ -42,7 +42,7 @@ export function sumShiftAmounts(shifts) {
   return hasAmount ? total : null;
 }
 
-function shiftsCountedForAttendanceStatus(shifts) {
+export function shiftsCountedForAttendanceStatus(shifts) {
   const counted = {};
   for (const [key, shift] of Object.entries(shifts || {})) {
     if (!shift) {
@@ -61,23 +61,37 @@ function shiftsCountedForAttendanceStatus(shifts) {
   return counted;
 }
 
+/** One status chip per marked shift (for list STATUS column). */
+export function getAttendanceShiftStatusEntries(shifts) {
+  const counted = shiftsCountedForAttendanceStatus(shifts);
+  return Object.entries(counted).map(([responseKey, shift]) => ({
+    responseKey,
+    shiftLabel: formatShiftResponseKey(responseKey),
+    label: formatShiftStatus(shift?.status),
+    tone: shiftStatusChipTone(shift?.status),
+  }));
+}
+
 export function attendanceVerificationStatus(shifts) {
   const active = Object.values(shiftsCountedForAttendanceStatus(shifts));
   if (!active.length) {
-    return { label: 'Not Marked Attendance', tone: 'neutral' };
+    return { label: 'Not Marked Attendance', tone: 'notMarked' };
   }
   const statuses = active.map((s) => s.status);
   if (statuses.some((s) => s === SHIFT_STATUS.PENDING_VERIFICATION)) {
-    return { label: 'Pending verification', tone: 'pending' };
+    return { label: 'Pending verification', tone: shiftStatusChipTone(SHIFT_STATUS.PENDING_VERIFICATION) };
+  }
+  if (statuses.some((s) => s === SHIFT_STATUS.AWAITING_SUBMISSION)) {
+    return { label: 'Awaiting submission', tone: shiftStatusChipTone(SHIFT_STATUS.AWAITING_SUBMISSION) };
   }
   if (statuses.some((s) => s === SHIFT_STATUS.AWAITING_ATTENDANCE)) {
-    return { label: 'Awaiting attendance', tone: 'neutral' };
+    return { label: 'Awaiting attendance', tone: shiftStatusChipTone(SHIFT_STATUS.AWAITING_ATTENDANCE) };
   }
   if (statuses.every((s) => s === SHIFT_STATUS.VERIFIED)) {
-    return { label: 'Verified', tone: 'verified' };
+    return { label: 'Verified', tone: shiftStatusChipTone(SHIFT_STATUS.VERIFIED) };
   }
   if (statuses.some((s) => s === SHIFT_STATUS.REJECTED)) {
-    return { label: 'Rejected', tone: 'rejected' };
+    return { label: 'Rejected', tone: shiftStatusChipTone(SHIFT_STATUS.REJECTED) };
   }
   return { label: 'In review', tone: 'pending' };
 }

@@ -1,4 +1,5 @@
 import { SHIFT_KEY, SHIFT_META, SHIFT_STATUS } from '../constants/shifts.js';
+import { shiftStatusChipTone } from './shiftLabels.js';
 
 export function shiftFromResponse(attendance, shiftKey) {
   const meta = SHIFT_META[shiftKey];
@@ -24,18 +25,10 @@ export function statusTone(status, lockAttendance) {
   if (lockAttendance) {
     return 'locked';
   }
-  switch (status) {
-    case SHIFT_STATUS.VERIFIED:
-      return 'verified';
-    case SHIFT_STATUS.REJECTED:
-      return 'rejected';
-    case SHIFT_STATUS.PENDING_VERIFICATION:
-      return 'pending';
-    case SHIFT_STATUS.AWAITING_ATTENDANCE:
-      return 'neutral';
-    default:
-      return 'neutral';
+  if (!status) {
+    return 'neutral';
   }
+  return shiftStatusChipTone(status);
 }
 
 export function statusLabel(status, lockAttendance) {
@@ -51,6 +44,8 @@ export function statusLabel(status, lockAttendance) {
       return 'Pending verification';
     case SHIFT_STATUS.AWAITING_ATTENDANCE:
       return 'Awaiting attendance';
+    case SHIFT_STATUS.AWAITING_SUBMISSION:
+      return 'Awaiting submission';
     default:
       return 'Not submitted';
   }

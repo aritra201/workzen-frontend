@@ -1,3 +1,5 @@
+import { SHIFT_STATUS } from '../../constants/shifts.js';
+import { formatShiftStatus, shiftStatusChipTone } from '../../utils/shiftLabels.js';
 import PersonAvatar from '../ui/PersonAvatar.jsx';
 import ShiftHighlightChips from '../ui/ShiftHighlightChips.jsx';
 import StatusChip from '../ui/StatusChip.jsx';
@@ -23,13 +25,23 @@ function rowAttendanceStatus(row) {
   if (!slots.length) {
     return { label: '—', tone: 'neutral' };
   }
-  if (slots.every((s) => s.fulfilled)) {
-    return { label: 'Fulfilled', tone: 'verified' };
+  const statuses = slots.map((s) => s.status).filter(Boolean);
+  if (statuses.some((s) => s === SHIFT_STATUS.PENDING_VERIFICATION)) {
+    return { label: 'Pending verification', tone: 'pending' };
   }
-  if (slots.some((s) => s.fulfilled)) {
-    return { label: 'Partially fulfilled', tone: 'pending' };
+  if (statuses.some((s) => s === SHIFT_STATUS.VERIFIED)) {
+    return statuses.every((s) => s === SHIFT_STATUS.VERIFIED)
+      ? { label: 'Verified', tone: 'verified' }
+      : { label: 'In review', tone: 'pending' };
   }
-  return { label: 'Awaiting attendance', tone: 'pending' };
+  if (statuses.some((s) => s === SHIFT_STATUS.AWAITING_SUBMISSION)) {
+    return { label: 'Awaiting submission', tone: shiftStatusChipTone(SHIFT_STATUS.AWAITING_SUBMISSION) };
+  }
+  if (statuses.some((s) => s === SHIFT_STATUS.AWAITING_ATTENDANCE)) {
+    return { label: 'Awaiting attendance', tone: shiftStatusChipTone(SHIFT_STATUS.AWAITING_ATTENDANCE) };
+  }
+  const label = formatShiftStatus(statuses[0]);
+  return { label, tone: shiftStatusChipTone(statuses[0]) };
 }
 
 export default function ExtraShiftDeclarationsTable({ rows, date, emptyMessage }) {

@@ -140,7 +140,7 @@ export default function AttendanceRecordDetailPage({ mode, backTo }) {
             </p>
           </div>
         </div>
-        <StatusChip tone={record.lockAttendance ? 'locked' : 'pending'}>
+        <StatusChip tone={record.lockAttendance ? 'locked' : 'neutral'}>
           {record.lockAttendance ? 'Locked' : 'Open'}
         </StatusChip>
       </header>

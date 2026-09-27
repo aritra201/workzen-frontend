@@ -25,6 +25,8 @@ export function formatShiftStatus(status) {
       return 'Pending verification';
     case SHIFT_STATUS.AWAITING_ATTENDANCE:
       return 'Awaiting attendance';
+    case SHIFT_STATUS.AWAITING_SUBMISSION:
+      return 'Awaiting submission';
     case SHIFT_STATUS.VERIFIED:
       return 'Verified';
     case SHIFT_STATUS.REJECTED:
@@ -37,20 +39,25 @@ export function formatShiftStatus(status) {
   }
 }
 
+/**
+ * StatusChip tone per shift status. Colors match shift badges (see shiftChipStyles.js):
+ * Verified=Day · Pending verification=Night · Awaiting submission=Extra Day · Awaiting attendance=Extra Night
+ */
 export function shiftStatusChipTone(status) {
-  if (status === SHIFT_STATUS.VERIFIED) {
-    return 'verified';
+  switch (status) {
+    case SHIFT_STATUS.VERIFIED:
+      return 'verified';
+    case SHIFT_STATUS.REJECTED:
+      return 'rejected';
+    case SHIFT_STATUS.PENDING_VERIFICATION:
+      return 'pending';
+    case SHIFT_STATUS.AWAITING_ATTENDANCE:
+      return 'awaitingAttendance';
+    case SHIFT_STATUS.AWAITING_SUBMISSION:
+      return 'awaitingSubmission';
+    default:
+      return 'neutral';
   }
-  if (status === SHIFT_STATUS.REJECTED) {
-    return 'rejected';
-  }
-  if (status === SHIFT_STATUS.PENDING_VERIFICATION) {
-    return 'pending';
-  }
-  if (status === SHIFT_STATUS.AWAITING_ATTENDANCE) {
-    return 'neutral';
-  }
-  return 'neutral';
 }
 
 export function responseKeyToApiShiftKey(responseKey) {

@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { listCompanyAttendance } from '../../api/companyAttendance.js';
 import {
-  attendanceVerificationStatus,
   getAttendanceEmployeeName,
   getAttendanceEmployeeProfilePicture,
   getCompanyAttendanceListItems,
@@ -12,12 +11,11 @@ import { listRangeLastDays } from '../../utils/myAttendanceList.js';
 import { employeeIdsQueryParam } from '../../utils/employeeIds.js';
 import CompanyAttendanceFilters from '../../components/attendance/CompanyAttendanceFilters.jsx';
 import ListPagination from '../../components/common/ListPagination.jsx';
-import ShiftHighlightChips from '../../components/ui/ShiftHighlightChips.jsx';
+import AttendanceShiftStatusPairs from '../../components/attendance/AttendanceShiftStatusPairs.jsx';
 import { formatCurrencyInr, formatDateLabel } from '../../utils/format.js';
 import ErrorMessage from '../../components/common/ErrorMessage.jsx';
 import LoadingSpinner from '../../components/common/LoadingSpinner.jsx';
 import PersonAvatar from '../../components/ui/PersonAvatar.jsx';
-import StatusChip from '../../components/ui/StatusChip.jsx';
 
 const DEFAULT_RANGE_DAYS = 30;
 const PAGE_SIZE = 20;
@@ -138,22 +136,25 @@ export default function CompanyAttendanceListPage({
             <tr>
               <th className="label-caps px-3 py-2 text-outline">Employee</th>
               <th className="label-caps px-3 py-2 text-outline">Date</th>
-              <th className="label-caps px-3 py-2 text-outline">Shift</th>
+              <th className="label-caps min-w-[14rem] px-3 py-2 text-outline">
+                <span className="grid grid-cols-[minmax(5.5rem,7rem)_minmax(0,1fr)] gap-x-4">
+                  <span>Shift</span>
+                  <span>Status</span>
+                </span>
+              </th>
               <th className="label-caps px-3 py-2 text-outline">Amount</th>
-              <th className="label-caps px-3 py-2 text-outline">Status</th>
               <th className="label-caps px-3 py-2 text-right text-outline">Detail</th>
             </tr>
           </thead>
           <tbody>
             {records.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-4 py-10 text-center text-on-surface-variant">
+                <td colSpan={5} className="px-4 py-10 text-center text-on-surface-variant">
                   No attendance records for this date range.
                 </td>
               </tr>
             ) : (
               records.map((row) => {
-                const verification = attendanceVerificationStatus(row.shifts);
                 const totalAmount = sumShiftAmounts(row.shifts);
                 const employeeName = getAttendanceEmployeeName(row);
                 return (
@@ -174,13 +175,10 @@ export default function CompanyAttendanceListPage({
                     </td>
                     <td className="px-3 py-2">{formatDateLabel(row.date)}</td>
                     <td className="px-3 py-2">
-                      <ShiftHighlightChips shifts={row.shifts} />
+                      <AttendanceShiftStatusPairs shifts={row.shifts} />
                     </td>
                     <td className="label-numeric px-3 py-2 text-on-surface">
                       {totalAmount != null ? formatCurrencyInr(totalAmount) : 'N/A'}
-                    </td>
-                    <td className="px-3 py-2">
-                      <StatusChip tone={verification.tone}>{verification.label}</StatusChip>
                     </td>
                     <td className="px-3 py-2 text-right">
                       <Link

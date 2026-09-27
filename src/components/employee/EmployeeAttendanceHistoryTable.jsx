@@ -1,9 +1,6 @@
 import { Link } from 'react-router-dom';
-import {
-  attendanceVerificationStatus,
-  sumShiftAmounts,
-} from '../../utils/myAttendanceList.js';
-import ShiftHighlightChips from '../ui/ShiftHighlightChips.jsx';
+import { sumShiftAmounts } from '../../utils/myAttendanceList.js';
+import AttendanceShiftStatusPairs from '../attendance/AttendanceShiftStatusPairs.jsx';
 import StatusChip from '../ui/StatusChip.jsx';
 import { formatCurrencyInr, formatDateLabel } from '../../utils/format.js';
 import Button from '../ui/Button.jsx';
@@ -22,9 +19,13 @@ export default function EmployeeAttendanceHistoryTable({
         <thead className="border-b border-outline-variant/40 bg-surface-container-low">
           <tr>
             <th className="label-caps px-3 py-2 text-outline">Date</th>
-            <th className="label-caps px-3 py-2 text-outline">Shift</th>
+            <th className="label-caps min-w-[14rem] px-3 py-2 text-outline">
+              <span className="grid grid-cols-[minmax(5.5rem,7rem)_minmax(0,1fr)] gap-x-4">
+                <span>Shift</span>
+                <span>Status</span>
+              </span>
+            </th>
             <th className="label-caps px-3 py-2 text-outline">Amount</th>
-            <th className="label-caps px-3 py-2 text-outline">Status</th>
             <th className="label-caps px-3 py-2 text-outline">Lock</th>
             <th className="label-caps px-3 py-2 text-right text-outline">Actions</th>
           </tr>
@@ -38,7 +39,6 @@ export default function EmployeeAttendanceHistoryTable({
             </tr>
           ) : (
             records.map((row) => {
-              const verification = attendanceVerificationStatus(row.shifts);
               const totalAmount = sumShiftAmounts(row.shifts);
               const attendanceKey = String(row.attendanceId);
               const unlockPending = pendingAttendanceIds?.has(attendanceKey);
@@ -46,16 +46,13 @@ export default function EmployeeAttendanceHistoryTable({
                 <tr key={row.attendanceId} className="border-t border-outline-variant/30 hover:bg-surface-container-high/50">
                   <td className="px-3 py-2">{formatDateLabel(row.date)}</td>
                   <td className="px-3 py-2">
-                    <ShiftHighlightChips shifts={row.shifts} />
+                    <AttendanceShiftStatusPairs shifts={row.shifts} />
                   </td>
                   <td className="label-numeric px-3 py-2 text-on-surface">
                     {totalAmount != null ? formatCurrencyInr(totalAmount) : 'N/A'}
                   </td>
                   <td className="px-3 py-2">
-                    <StatusChip tone={verification.tone}>{verification.label}</StatusChip>
-                  </td>
-                  <td className="px-3 py-2">
-                    <StatusChip tone={row.lockAttendance ? 'locked' : 'pending'}>
+                    <StatusChip tone={row.lockAttendance ? 'locked' : 'neutral'}>
                       {row.lockAttendance ? 'Locked' : 'Open'}
                     </StatusChip>
                   </td>
