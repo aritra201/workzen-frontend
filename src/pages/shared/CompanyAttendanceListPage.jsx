@@ -16,6 +16,8 @@ import { formatCurrencyInr, formatDateLabel } from '../../utils/format.js';
 import ErrorMessage from '../../components/common/ErrorMessage.jsx';
 import LoadingSpinner from '../../components/common/LoadingSpinner.jsx';
 import PersonAvatar from '../../components/ui/PersonAvatar.jsx';
+import TableCard from '../../components/common/TableCard.jsx';
+import { MobileListCard, MobileListStack } from '../../components/common/MobileList.jsx';
 
 const DEFAULT_RANGE_DAYS = 30;
 const PAGE_SIZE = 20;
@@ -130,13 +132,58 @@ export default function CompanyAttendanceListPage({
         {loading ? <span className="text-xs">Updating…</span> : null}
       </div>
 
-      <div className={`overflow-hidden rounded-lg border border-outline-variant/40 bg-surface-container-lowest shadow-card ${loading ? 'opacity-60' : ''}`}>
-        <table className="w-full text-left text-sm">
+      {records.length === 0 ? (
+        <p className="rounded-xl border border-outline-variant/40 bg-surface-container-lowest px-4 py-10 text-center text-on-surface-variant shadow-card">
+          No attendance records for this date range.
+        </p>
+      ) : (
+        <MobileListStack className={loading ? 'opacity-60' : ''}>
+          {records.map((row) => {
+            const totalAmount = sumShiftAmounts(row.shifts);
+            const employeeName = getAttendanceEmployeeName(row);
+            return (
+              <MobileListCard key={row.attendanceId}>
+                <div className="flex items-center gap-3">
+                  <PersonAvatar
+                    name={employeeName}
+                    email={row.employee?.email}
+                    src={getAttendanceEmployeeProfilePicture(row)}
+                    size={40}
+                  />
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold">{employeeName}</p>
+                    <p className="text-sm text-on-surface-variant">{formatDateLabel(row.date)}</p>
+                  </div>
+                </div>
+                <div className="mt-3">
+                  <p className="label-caps mb-1 text-outline">Shifts</p>
+                  <AttendanceShiftStatusPairs shifts={row.shifts} />
+                </div>
+                <p className="mt-3 label-numeric text-on-surface">
+                  {totalAmount != null ? formatCurrencyInr(totalAmount) : 'N/A'}
+                </p>
+                <Link
+                  className="mt-4 inline-flex h-10 items-center font-semibold text-primary"
+                  to={`${detailBasePath}?attendanceId=${row.attendanceId}`}
+                >
+                  View detail
+                </Link>
+              </MobileListCard>
+            );
+          })}
+        </MobileListStack>
+      )}
+
+      {records.length > 0 ? (
+      <TableCard
+        className={`rounded-lg ${loading ? 'opacity-60' : ''}`}
+        minTableWidth="md:min-w-[52rem]"
+      >
           <thead className="border-b border-outline-variant/40 bg-surface-container-low">
             <tr>
               <th className="label-caps px-3 py-2 text-outline">Employee</th>
               <th className="label-caps px-3 py-2 text-outline">Date</th>
-              <th className="label-caps min-w-[14rem] px-3 py-2 text-outline">
+              <th className="label-caps px-3 py-2 text-outline md:min-w-[14rem]">
                 <span className="grid grid-cols-[minmax(5.5rem,7rem)_minmax(0,1fr)] gap-x-4">
                   <span>Shift</span>
                   <span>Status</span>
@@ -147,14 +194,7 @@ export default function CompanyAttendanceListPage({
             </tr>
           </thead>
           <tbody>
-            {records.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="px-4 py-10 text-center text-on-surface-variant">
-                  No attendance records for this date range.
-                </td>
-              </tr>
-            ) : (
-              records.map((row) => {
+            {records.map((row) => {
                 const totalAmount = sumShiftAmounts(row.shifts);
                 const employeeName = getAttendanceEmployeeName(row);
                 return (
@@ -190,11 +230,10 @@ export default function CompanyAttendanceListPage({
                     </td>
                   </tr>
                 );
-              })
-            )}
+              })}
           </tbody>
-        </table>
-      </div>
+      </TableCard>
+      ) : null}
 
       <ListPagination
         page={page}

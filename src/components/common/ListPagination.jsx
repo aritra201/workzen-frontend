@@ -14,7 +14,7 @@ export default function ListPagination({
   }
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
+    <div className="flex flex-col items-stretch gap-3 text-sm sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
       <Button
         type="button"
         variant="secondary"
@@ -24,7 +24,7 @@ export default function ListPagination({
       >
         Previous
       </Button>
-      <span className="text-on-surface-variant">
+      <span className="text-center text-on-surface-variant sm:text-left">
         Page {page} of {Math.max(totalPages, 1)}
       </span>
       <Button

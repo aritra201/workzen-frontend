@@ -11,6 +11,8 @@ import StatusChangeConfirmModal from '../../components/admin/StatusChangeConfirm
 import ErrorMessage from '../../components/common/ErrorMessage.jsx';
 import LoadingSpinner from '../../components/common/LoadingSpinner.jsx';
 import StatusChip from '../../components/ui/StatusChip.jsx';
+import TableCard from '../../components/common/TableCard.jsx';
+import { MobileListCard, MobileListStack } from '../../components/common/MobileList.jsx';
 
 const PAGE_SIZE = 20;
 
@@ -134,7 +136,7 @@ export default function AdminEmployeesPage() {
           label="Filter by employee"
           value={filterEmployeeIds}
           onChange={setFilterEmployeeIds}
-          className="min-w-[240px] flex-1 sm:max-w-md"
+          className="min-w-0 w-full flex-1 sm:max-w-md"
           disabled={loading}
         />
         <Button
@@ -151,8 +153,71 @@ export default function AdminEmployeesPage() {
         {total === 0 ? 'No employees match this filter.' : `Showing ${rangeStart}–${rangeEnd} of ${total}`}
       </p>
 
-      <div className={`overflow-hidden rounded-xl bg-surface-container-lowest shadow-card ${loading ? 'opacity-60' : ''}`}>
-        <table className="w-full text-left text-sm">
+      {employees.length === 0 ? (
+        <p className="rounded-xl bg-surface-container-lowest px-4 py-10 text-center text-on-surface-variant shadow-card">
+          No employees to show.
+        </p>
+      ) : (
+        <MobileListStack className={loading ? 'opacity-60' : ''}>
+          {employees.map((employee) => {
+            const status = employeeStatus(employee);
+            const invitationPending = !employee.userId;
+            const canDeactivate = employee.userId && employee.isActive;
+            const canActivate = employee.userId && !employee.isActive;
+            return (
+              <MobileListCard key={employee.employeeId}>
+                <div className="flex items-center gap-3">
+                  <PersonAvatar
+                    name={employee.employeeName}
+                    email={employee.employeeEmail}
+                    src={employee.profilePicture}
+                    size={44}
+                  />
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold">{employee.employeeName}</p>
+                    <p className="truncate text-sm text-on-surface-variant">{employee.employeeEmail}</p>
+                  </div>
+                </div>
+                <div className="mt-3">
+                  <StatusChip tone={status.tone}>{status.label}</StatusChip>
+                </div>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {invitationPending ? (
+                    <Button size="sm" variant="secondary" onClick={() => handleResend(employee)}>
+                      Resend invite
+                    </Button>
+                  ) : null}
+                  {canDeactivate ? (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setStatusConfirm({ employee, nextActive: false })}
+                    >
+                      Deactivate
+                    </Button>
+                  ) : null}
+                  {canActivate ? (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setStatusConfirm({ employee, nextActive: true })}
+                    >
+                      Activate
+                    </Button>
+                  ) : null}
+                </div>
+              </MobileListCard>
+            );
+          })}
+        </MobileListStack>
+      )}
+
+      {employees.length > 0 ? (
+      <TableCard
+        bordered={false}
+        className={`rounded-xl ${loading ? 'opacity-60' : ''}`}
+        minTableWidth="md:min-w-[44rem]"
+      >
           <thead className="bg-surface-container-low text-xs uppercase text-outline">
             <tr>
               <th className="px-4 py-3">Employee</th>
@@ -162,14 +227,7 @@ export default function AdminEmployeesPage() {
             </tr>
           </thead>
           <tbody>
-            {employees.length === 0 ? (
-              <tr>
-                <td colSpan={4} className="px-4 py-10 text-center text-on-surface-variant">
-                  No employees to show.
-                </td>
-              </tr>
-            ) : (
-              employees.map((employee) => {
+              {employees.map((employee) => {
                 const status = employeeStatus(employee);
                 const invitationPending = !employee.userId;
                 const canDeactivate = employee.userId && employee.isActive;
@@ -223,11 +281,10 @@ export default function AdminEmployeesPage() {
                     </td>
                   </tr>
                 );
-              })
-            )}
+              })}
           </tbody>
-        </table>
-      </div>
+      </TableCard>
+      ) : null}
 
       <ListPagination
         page={page}

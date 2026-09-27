@@ -21,7 +21,7 @@ export default function CompanyAttendanceFilters({
           type="date"
           value={startDate}
           onChange={(e) => onStartDateChange(e.target.value)}
-          className="min-w-40 flex-1"
+          className="min-w-0 w-full flex-1 sm:min-w-40"
         />
         <TextField
           id="attendance-range-end"
@@ -29,7 +29,7 @@ export default function CompanyAttendanceFilters({
           type="date"
           value={endDate}
           onChange={(e) => onEndDateChange(e.target.value)}
-          className="min-w-40 flex-1"
+          className="min-w-0 w-full flex-1 sm:min-w-40"
         />
         <EmployeeFilterSelect
           mode="multiple"
@@ -37,7 +37,7 @@ export default function CompanyAttendanceFilters({
           value={employeeIds}
           onChange={onEmployeeIdsChange}
           disabled={loading}
-          className="min-w-[240px] flex-1 lg:max-w-sm"
+          className="min-w-0 w-full flex-1 lg:max-w-sm"
         />
         <Button
           type="button"

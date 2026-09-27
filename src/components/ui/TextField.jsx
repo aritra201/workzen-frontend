@@ -28,7 +28,7 @@ export default function TextField({
         ) : null}
         <input
           id={id}
-          className={`h-12 w-full rounded-lg border border-outline-variant/40 bg-surface-container-lowest text-on-surface placeholder:text-on-surface-variant/60 focus:shadow-[0_0_0_2px_#00685f] focus:outline-none transition-all ${icon ? `pl-11 ${paddingRight}` : `px-4 ${suffix ? 'pr-11' : ''}`} ${inputClassName}`}
+          className={`h-12 w-full max-w-full rounded-lg border border-outline-variant/40 bg-surface-container-lowest text-base text-on-surface placeholder:text-on-surface-variant/60 focus:shadow-[0_0_0_2px_#00685f] focus:outline-none transition-all md:text-sm ${icon ? `pl-11 ${paddingRight}` : `px-4 ${suffix ? 'pr-11' : ''}`} ${inputClassName}`}
           {...inputProps}
         />
         {suffix}

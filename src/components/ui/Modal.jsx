@@ -23,7 +23,7 @@ export default function Modal({
         onClick={closeOnBackdrop ? onClose : undefined}
       />
       <div
-        className="relative z-10 w-full max-w-lg rounded-t-2xl bg-surface-container-lowest p-6 shadow-xl sm:rounded-2xl"
+        className="relative z-10 flex max-h-[min(92vh,100dvh)] w-full max-w-lg flex-col overflow-hidden rounded-t-2xl bg-surface-container-lowest p-6 shadow-xl sm:max-h-[90vh] sm:rounded-2xl pb-safe"
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"
@@ -41,8 +41,10 @@ export default function Modal({
             </button>
           ) : null}
         </div>
-        <div>{children}</div>
-        {footer ? <div className="mt-6 flex justify-end gap-2">{footer}</div> : null}
+        <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>
+        {footer ? (
+          <div className="mt-6 flex shrink-0 flex-wrap justify-end gap-2">{footer}</div>
+        ) : null}
       </div>
     </div>
   );

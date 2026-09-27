@@ -73,14 +73,14 @@ export default function AdminUnlockRequestsPage() {
         {requests.map((r) => (
           <article
             key={r.id}
-            className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-outline-variant/40 bg-surface-container-lowest p-4 shadow-card"
+            className="flex flex-col gap-3 rounded-xl border border-outline-variant/40 bg-surface-container-lowest p-4 shadow-card sm:flex-row sm:flex-wrap sm:items-center sm:justify-between"
           >
-            <div>
+            <div className="min-w-0">
               <p className="font-semibold">{r.employeeName || 'Employee'}</p>
               <p className="text-sm text-on-surface-variant">{r.date}</p>
               <StatusChip tone="pending">{r.status}</StatusChip>
             </div>
-            <div className="flex gap-2">
+            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
               <Button size="sm" onClick={() => decide(r, 'approved')}>Approve</Button>
               <Button size="sm" variant="danger" onClick={() => decide(r, 'denied')}>Deny</Button>
             </div>
