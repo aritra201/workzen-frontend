@@ -1,6 +1,7 @@
 import { clearTokens, getAccessToken, getRefreshToken, setTokens } from '../utils/storage.js';
 
-const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:4000').replace(/\/$/, '');
+// Empty VITE_API_URL → same-origin `/api` (Vite dev proxy). Set full URL for production builds.
+const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
 
 let refreshPromise = null;
 

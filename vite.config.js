@@ -7,7 +7,13 @@ export default defineConfig({
   server: {
     port: 3000,
     strictPort: true,
+    // ngrok / tunnel URLs (subdomain changes each session)
+    allowedHosts: ['.ngrok-free.app', '.ngrok.io', 'localhost'],
     proxy: {
+      '/api': {
+        target: 'http://localhost:4000',
+        changeOrigin: true,
+      },
       '/country-codes': {
         target: 'https://lawsikho.com',
         changeOrigin: true,
