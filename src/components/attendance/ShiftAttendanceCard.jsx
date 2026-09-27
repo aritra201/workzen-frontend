@@ -1,19 +1,13 @@
 import { useEffect, useState } from 'react';
-import {
-  confirmShift,
-  submitShift,
-  updateShiftDetails,
-  uploadWorkPictures,
-} from '../../api/attendance.js';
+import { confirmShift, submitShift, updateShiftDetails } from '../../api/attendance.js';
 import { SHIFT_META } from '../../constants/shifts.js';
 import { formatCurrencyInr, formatDateLabel } from '../../utils/format.js';
 import { getSubmitGeoLocation } from '../../utils/geolocation.js';
 import { statusLabel, statusTone } from '../../utils/attendanceUi.js';
 import ShiftConfirmModal from './ShiftConfirmModal.jsx';
-import WorkPictureLightboxModal from './WorkPictureLightboxModal.jsx';
+import EmployeeShiftWorkPictures from './EmployeeShiftWorkPictures.jsx';
 import { getShiftWorkPictureUrls } from './WorkPicturesGallery.jsx';
 import Button from '../ui/Button.jsx';
-import Icon from '../ui/Icon.jsx';
 import StatusChip from '../ui/StatusChip.jsx';
 import TextField from '../ui/TextField.jsx';
 
@@ -37,7 +31,6 @@ export default function ShiftAttendanceCard({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [picturePreviewIndex, setPicturePreviewIndex] = useState(null);
 
   useEffect(() => {
     setAmount(shift?.amount ?? '');
@@ -53,7 +46,6 @@ export default function ShiftAttendanceCard({
   const hasSavedSubmit = hasSavedShiftSubmit(shift);
   const canSubmitFirst = amountValid || commentValid;
   const pictureUrls = getShiftWorkPictureUrls(shift);
-  const pictureCount = pictureUrls.length;
 
   function submitHint() {
     if (hasSavedSubmit || disabled) {
@@ -133,15 +125,6 @@ export default function ShiftAttendanceCard({
     );
   }
 
-  async function handlePhotos(event) {
-    const files = [...(event.target.files || [])];
-    if (!files.length) {
-      return;
-    }
-    await run(() => uploadWorkPictures(files, { shiftKey, attendanceDate }));
-    event.target.value = '';
-  }
-
   if (!meta) {
     return null;
   }
@@ -166,14 +149,6 @@ export default function ShiftAttendanceCard({
           </Button>
         ) : null}
       </div>
-
-      <WorkPictureLightboxModal
-        open={picturePreviewIndex != null}
-        urls={pictureUrls}
-        index={picturePreviewIndex ?? 0}
-        onClose={() => setPicturePreviewIndex(null)}
-        onIndexChange={setPicturePreviewIndex}
-      />
 
       <ShiftConfirmModal
         open={confirmOpen}
@@ -217,29 +192,16 @@ export default function ShiftAttendanceCard({
             placeholder="Describe work completed on site"
           />
 
-          <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-on-surface-variant">
-              Proof of work {pictureCount ? `(${pictureCount})` : '(optional)'}
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {pictureUrls.map((url, index) => (
-                <button
-                  key={url}
-                  type="button"
-                  onClick={() => setPicturePreviewIndex(index)}
-                  className="overflow-hidden rounded-lg ring-1 ring-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/40"
-                >
-                  <img src={url} alt="" className="h-14 w-14 object-cover" />
-                </button>
-              ))}
-              {!disabled ? (
-                <label className="flex h-14 w-14 cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-outline-variant bg-surface-container-low text-on-surface-variant">
-                  <Icon name="add_a_photo" size={20} />
-                  <input type="file" accept="image/*" multiple className="hidden" onChange={handlePhotos} />
-                </label>
-              ) : null}
-            </div>
-          </div>
+          <EmployeeShiftWorkPictures
+            pictureUrls={pictureUrls}
+            shiftKey={shiftKey}
+            attendanceDate={attendanceDate}
+            disabled={disabled}
+            busy={busy}
+            onBusyChange={setBusy}
+            onUpdated={onUpdated}
+            onError={setError}
+          />
 
           {!disabled ? (
             <div className="space-y-2">
