@@ -20,13 +20,13 @@ export default function AdminDashboardPage() {
     async function load() {
       try {
         const [employees, present, unlocks, pending] = await Promise.all([
-          listEmployees(),
+          listEmployees({ limit: 1, page: 1 }),
           listPresentEmployees({ limit: 1 }),
           listUnlockRequestsAdmin({ status: 'pending', limit: 1 }),
           listCompanyAttendance({ status: 'pending_verification', limit: 5 }),
         ]);
         setStats({
-          workforce: employees?.employees?.length ?? 0,
+          workforce: employees?.total ?? employees?.employees?.length ?? 0,
           present: present?.total ?? present?.employees?.length ?? 0,
           unlocks: unlocks?.total ?? 0,
           pending: pending?.total ?? 0,

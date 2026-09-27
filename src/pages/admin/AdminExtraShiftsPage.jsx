@@ -1,27 +1,26 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { declareExtraShift, listExtraShifts } from '../../api/extraShifts.js';
-import { listEmployeeDropdown } from '../../api/employees.js';
+import { employeeIdsQueryParam } from '../../utils/employeeIds.js';
 import { todayIsoDate } from '../../utils/format.js';
 import ExtraShiftDeclarationsTable, {
   isExtraDeclared,
 } from '../../components/admin/ExtraShiftDeclarationsTable.jsx';
+import EmployeeFilterSelect from '../../components/admin/EmployeeFilterSelect.jsx';
+import ListPagination from '../../components/common/ListPagination.jsx';
 import Button from '../../components/ui/Button.jsx';
 import TextField from '../../components/ui/TextField.jsx';
 import ErrorMessage from '../../components/common/ErrorMessage.jsx';
 import LoadingSpinner from '../../components/common/LoadingSpinner.jsx';
-import { useAuth } from '../../hooks/useAuth.js';
 
 const DECLARATIONS_PAGE_SIZE = 10;
 
 export default function AdminExtraShiftsPage() {
-  const { primaryMembership } = useAuth();
-  const companyId = primaryMembership?.companyId;
   const [date, setDate] = useState(todayIsoDate());
-  const [employees, setEmployees] = useState([]);
   const [declarations, setDeclarations] = useState([]);
   const [declarationsPage, setDeclarationsPage] = useState(1);
   const [declarationsTotal, setDeclarationsTotal] = useState(0);
   const [declarationsTotalPages, setDeclarationsTotalPages] = useState(0);
+  const [listFilterEmployeeIds, setListFilterEmployeeIds] = useState([]);
   const [employeeExtraRow, setEmployeeExtraRow] = useState(null);
   const [form, setForm] = useState({ employeeId: '', extraDayShift: true, extraNightShift: false });
   const [pageLoading, setPageLoading] = useState(true);
@@ -43,7 +42,12 @@ export default function AdminExtraShiftsPage() {
   }, []);
 
   const loadExtraShifts = useCallback(
-    async ({ declarationsPage: page = declarationsPage, employeeId = form.employeeId, listOnly = false } = {}) => {
+    async ({
+      declarationsPage: page = declarationsPage,
+      employeeId = form.employeeId,
+      declarationsEmployeeId = listFilterEmployeeIds,
+      listOnly = false,
+    } = {}) => {
       if (listOnly) {
         setListLoading(true);
       } else {
@@ -51,11 +55,13 @@ export default function AdminExtraShiftsPage() {
       }
       setError('');
       try {
+        const declFilter = employeeIdsQueryParam(declarationsEmployeeId);
         const extra = await listExtraShifts({
           date,
           declarationsPage: page,
           declarationsLimit: DECLARATIONS_PAGE_SIZE,
           ...(employeeId ? { employeeId } : {}),
+          ...(declFilter ? { declarationsEmployeeId: declFilter } : {}),
         });
         setDeclarations(extra.declarations || []);
         setDeclarationsTotal(extra.declarationsTotal ?? 0);
@@ -71,24 +77,13 @@ export default function AdminExtraShiftsPage() {
         setPageLoading(false);
       }
     },
-    [date, declarationsPage, form.employeeId]
+    [date, declarationsPage, form.employeeId, listFilterEmployeeIds]
   );
-
-  const loadEmployees = useCallback(async () => {
-    if (!companyId) {
-      setEmployees([]);
-      return;
-    }
-    const emp = await listEmployeeDropdown(companyId);
-    setEmployees(emp.employees || []);
-  }, [companyId]);
 
   useEffect(() => {
     setDeclarationsPage(1);
-    (async () => {
-      await loadEmployees();
-      await loadExtraShifts({ declarationsPage: 1, employeeId: '' });
-    })();
+    setListFilterEmployeeIds([]);
+    loadExtraShifts({ declarationsPage: 1, employeeId: '', declarationsEmployeeId: [], listOnly: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- date change
   }, [date]);
 
@@ -98,7 +93,7 @@ export default function AdminExtraShiftsPage() {
       return;
     }
     loadExtraShifts({ employeeId: form.employeeId, declarationsPage });
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- employee selection
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- declare form employee
   }, [form.employeeId]);
 
   useEffect(() => {
@@ -129,7 +124,8 @@ export default function AdminExtraShiftsPage() {
   const canSubmit =
     form.employeeId && ((canDeclareDay && extraDayChecked) || (canDeclareNight && extraNightChecked));
 
-  function handleEmployeeChange(employeeId) {
+  function handleDeclareEmployeeChange(ids) {
+    const employeeId = ids[0] || '';
     setForm((prev) => ({
       ...prev,
       employeeId,
@@ -138,11 +134,20 @@ export default function AdminExtraShiftsPage() {
     }));
   }
 
-  function goToDeclarationsPage(nextPage) {
+  function handleApplyListFilter() {
+    setDeclarationsPage(1);
+    loadExtraShifts({
+      declarationsPage: 1,
+      declarationsEmployeeId: listFilterEmployeeIds,
+      listOnly: true,
+    });
+  }
+
+  function handlePageChange(nextPage) {
     setDeclarationsPage(nextPage);
     loadExtraShifts({
       declarationsPage: nextPage,
-      employeeId: form.employeeId,
+      declarationsEmployeeId: listFilterEmployeeIds,
       listOnly: true,
     });
   }
@@ -159,7 +164,12 @@ export default function AdminExtraShiftsPage() {
         extraDayShift: canDeclareDay && extraDayChecked,
         extraNightShift: canDeclareNight && extraNightChecked,
       });
-      await loadExtraShifts({ employeeId: form.employeeId, declarationsPage, listOnly: true });
+      await loadExtraShifts({
+        employeeId: form.employeeId,
+        declarationsPage,
+        declarationsEmployeeId: listFilterEmployeeIds,
+        listOnly: true,
+      });
     } catch (err) {
       setError(err.message);
     }
@@ -168,68 +178,73 @@ export default function AdminExtraShiftsPage() {
   const rangeStart =
     declarationsTotal === 0 ? 0 : (declarationsPage - 1) * DECLARATIONS_PAGE_SIZE + 1;
   const rangeEnd = Math.min(declarationsPage * DECLARATIONS_PAGE_SIZE, declarationsTotal);
-  const showDeclarationsPagination =
-    declarationsTotalPages > 1 || declarationsTotal > DECLARATIONS_PAGE_SIZE;
 
-  if (pageLoading && !declarations.length && !employees.length) {
+  if (pageLoading && !declarations.length) {
     return <LoadingSpinner />;
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <h1 className="text-2xl font-bold">Extra shifts</h1>
       <ErrorMessage message={error} />
 
       <form
         onSubmit={handleDeclare}
-        className="grid gap-4 rounded-xl border border-outline-variant/40 bg-surface-container-lowest p-6 shadow-card md:grid-cols-2"
+        className="space-y-3 rounded-lg border border-outline-variant/40 bg-surface-container-lowest p-4 shadow-card"
       >
-        <TextField id="extra-date" label="Date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-        <label className="block text-sm">
-          <span className="mb-1.5 block font-medium">Employee</span>
-          <select
-            className="h-12 w-full rounded-lg border border-outline-variant/40 bg-surface-container-low px-3"
-            value={form.employeeId}
-            onChange={(e) => handleEmployeeChange(e.target.value)}
-            required
-          >
-            <option value="">Select employee</option>
-            {employees.map((e) => (
-              <option key={e.employeeId} value={e.employeeId}>{e.employeeName}</option>
-            ))}
-          </select>
-        </label>
-        <label className={`flex items-center gap-2 text-sm ${dayAlreadyDeclared ? 'opacity-50' : ''}`}>
-          <input
-            type="checkbox"
-            checked={extraDayChecked}
-            disabled={!canDeclareDay}
-            onChange={(ev) => setForm({ ...form, extraDayShift: ev.target.checked })}
+        <div className="grid gap-3 sm:grid-cols-2">
+          <TextField
+            id="extra-date"
+            label="Date"
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
           />
-          Extra day shift
-          {dayAlreadyDeclared ? (
-            <span className="text-xs text-on-surface-variant">(already declared)</span>
-          ) : null}
-        </label>
-        <label className={`flex items-center gap-2 text-sm ${nightAlreadyDeclared ? 'opacity-50' : ''}`}>
-          <input
-            type="checkbox"
-            checked={extraNightChecked}
-            disabled={!canDeclareNight}
-            onChange={(ev) => setForm({ ...form, extraNightShift: ev.target.checked })}
+          <EmployeeFilterSelect
+            mode="single"
+            label="Employee"
+            value={form.employeeId ? [form.employeeId] : []}
+            onChange={handleDeclareEmployeeChange}
+            emptyLabel="Select employee"
+            triggerPlaceholder="Select employee"
+            className="w-full"
           />
-          Extra night shift
-          {nightAlreadyDeclared ? (
-            <span className="text-xs text-on-surface-variant">(already declared)</span>
-          ) : null}
-        </label>
-        <Button type="submit" className="md:col-span-2" disabled={!canSubmit}>
-          Declare extra shift
-        </Button>
+        </div>
+        <div className="flex flex-col gap-3 border-t border-outline-variant/30 pt-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+            <label className={`flex items-center gap-2 text-sm ${dayAlreadyDeclared ? 'opacity-50' : ''}`}>
+              <input
+                type="checkbox"
+                checked={extraDayChecked}
+                disabled={!canDeclareDay}
+                onChange={(ev) => setForm({ ...form, extraDayShift: ev.target.checked })}
+              />
+              Extra day shift
+              {dayAlreadyDeclared ? (
+                <span className="text-xs text-on-surface-variant">(declared)</span>
+              ) : null}
+            </label>
+            <label className={`flex items-center gap-2 text-sm ${nightAlreadyDeclared ? 'opacity-50' : ''}`}>
+              <input
+                type="checkbox"
+                checked={extraNightChecked}
+                disabled={!canDeclareNight}
+                onChange={(ev) => setForm({ ...form, extraNightShift: ev.target.checked })}
+              />
+              Extra night shift
+              {nightAlreadyDeclared ? (
+                <span className="text-xs text-on-surface-variant">(declared)</span>
+              ) : null}
+            </label>
+          </div>
+          <Button type="submit" className="h-10 shrink-0 px-6 sm:w-auto" disabled={!canSubmit}>
+            Declare extra shift
+          </Button>
+        </div>
       </form>
 
-      <section className="space-y-3">
-        <div className="flex flex-wrap items-end justify-between gap-2">
+      <section className="space-y-2">
+        <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <h2 className="text-lg font-semibold">Declarations for {date}</h2>
             <p className="text-sm text-on-surface-variant">
@@ -243,6 +258,25 @@ export default function AdminExtraShiftsPage() {
           ) : null}
         </div>
 
+        <div className="flex flex-col gap-2 rounded-lg border border-outline-variant/40 bg-surface-container-lowest p-3 shadow-card sm:flex-row sm:items-end sm:gap-3">
+          <EmployeeFilterSelect
+            mode="multiple"
+            label="Filter declarations"
+            value={listFilterEmployeeIds}
+            onChange={setListFilterEmployeeIds}
+            className="min-w-0 flex-1 sm:max-w-sm"
+            disabled={listLoading}
+          />
+          <Button
+            type="button"
+            onClick={handleApplyListFilter}
+            disabled={listLoading}
+            className="h-10 w-full shrink-0 px-6 sm:w-auto"
+          >
+            Apply filter
+          </Button>
+        </div>
+
         <div className={listLoading ? 'pointer-events-none opacity-60' : ''}>
           <ExtraShiftDeclarationsTable
             rows={declarations}
@@ -251,31 +285,14 @@ export default function AdminExtraShiftsPage() {
           />
         </div>
 
-        {showDeclarationsPagination ? (
-          <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              disabled={declarationsPage <= 1 || listLoading}
-              onClick={() => goToDeclarationsPage(declarationsPage - 1)}
-            >
-              Previous
-            </Button>
-            <span className="text-on-surface-variant">
-              Page {declarationsPage} of {Math.max(declarationsTotalPages, 1)}
-            </span>
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              disabled={declarationsPage >= declarationsTotalPages || listLoading}
-              onClick={() => goToDeclarationsPage(declarationsPage + 1)}
-            >
-              Next
-            </Button>
-          </div>
-        ) : null}
+        <ListPagination
+          page={declarationsPage}
+          totalPages={declarationsTotalPages}
+          total={declarationsTotal}
+          pageSize={DECLARATIONS_PAGE_SIZE}
+          loading={listLoading}
+          onPageChange={handlePageChange}
+        />
       </section>
     </div>
   );

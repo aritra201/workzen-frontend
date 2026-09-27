@@ -9,7 +9,9 @@ import {
   sumShiftAmounts,
 } from '../../utils/companyAttendanceList.js';
 import { listRangeLastDays } from '../../utils/myAttendanceList.js';
-import AttendanceDateRangeFilter from '../../components/attendance/AttendanceDateRangeFilter.jsx';
+import { employeeIdsQueryParam } from '../../utils/employeeIds.js';
+import CompanyAttendanceFilters from '../../components/attendance/CompanyAttendanceFilters.jsx';
+import ListPagination from '../../components/common/ListPagination.jsx';
 import ShiftHighlightChips from '../../components/ui/ShiftHighlightChips.jsx';
 import { formatCurrencyInr, formatDateLabel } from '../../utils/format.js';
 import ErrorMessage from '../../components/common/ErrorMessage.jsx';
@@ -18,6 +20,7 @@ import PersonAvatar from '../../components/ui/PersonAvatar.jsx';
 import StatusChip from '../../components/ui/StatusChip.jsx';
 
 const DEFAULT_RANGE_DAYS = 30;
+const PAGE_SIZE = 20;
 
 export default function CompanyAttendanceListPage({
   title,
@@ -28,44 +31,67 @@ export default function CompanyAttendanceListPage({
   const initialRange = listRangeLastDays(DEFAULT_RANGE_DAYS);
   const [startDate, setStartDate] = useState(initialRange.startDate);
   const [endDate, setEndDate] = useState(initialRange.endDate);
+  const [employeeIds, setEmployeeIds] = useState([]);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   const load = useCallback(
-    async (from, to) => {
+    async ({ from, to, pageNum = page, employees = employeeIds } = {}) => {
       setLoading(true);
       setError('');
       try {
         const params = {
-          startDate: from,
-          endDate: to,
-          limit: 50,
-          page: 1,
+          startDate: from ?? startDate,
+          endDate: to ?? endDate,
+          limit: PAGE_SIZE,
+          page: pageNum,
           fresh: true,
         };
         if (statusFilter) {
           params.status = statusFilter;
         }
+        const employeeIdParam = employeeIdsQueryParam(employees);
+        if (employeeIdParam) {
+          params.employeeId = employeeIdParam;
+        }
         const data = await listCompanyAttendance(params);
         setRecords(getCompanyAttendanceListItems(data));
+        setTotal(data.total ?? 0);
+        setTotalPages(data.totalPages ?? 0);
+        setPage(data.page ?? pageNum);
       } catch (err) {
         setError(err.message);
         setRecords([]);
+        setTotal(0);
+        setTotalPages(0);
       } finally {
         setLoading(false);
       }
     },
-    [statusFilter]
+    [startDate, endDate, statusFilter, page, employeeIds]
   );
 
   useEffect(() => {
-    load(startDate, endDate);
-  }, [load]);
+    load({ pageNum: 1 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- refetch when status tab changes
+  }, [statusFilter]);
 
   function handleApply() {
-    load(startDate, endDate);
+    setPage(1);
+    load({ from: startDate, to: endDate, pageNum: 1, employees: employeeIds });
   }
+
+  function handlePageChange(nextPage) {
+    setPage(nextPage);
+    load({ pageNum: nextPage, employees: employeeIds });
+  }
+
+  const rangeStart = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
+  const rangeEnd = Math.min(page * PAGE_SIZE, total);
 
   if (loading && records.length === 0 && !error) {
     return <LoadingSpinner />;
@@ -79,23 +105,34 @@ export default function CompanyAttendanceListPage({
           <p className="text-sm text-on-surface-variant">View-only member access</p>
         ) : (
           <p className="text-sm text-on-surface-variant">
-            Filter by date range (default: last {DEFAULT_RANGE_DAYS} days).
+            Filter by date range (default: last {DEFAULT_RANGE_DAYS} days) and employee.
           </p>
         )}
       </div>
 
-      <AttendanceDateRangeFilter
+      <CompanyAttendanceFilters
         startDate={startDate}
         endDate={endDate}
         onStartDateChange={setStartDate}
         onEndDateChange={setEndDate}
+        employeeIds={employeeIds}
+        onEmployeeIdsChange={setEmployeeIds}
         onApply={handleApply}
         loading={loading}
       />
 
       <ErrorMessage message={error} />
 
-      <div className="overflow-hidden rounded-lg border border-outline-variant/40 bg-surface-container-lowest shadow-card">
+      <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-on-surface-variant">
+        <span>
+          {total === 0
+            ? 'No records in this range.'
+            : `Showing ${rangeStart}–${rangeEnd} of ${total}`}
+        </span>
+        {loading ? <span className="text-xs">Updating…</span> : null}
+      </div>
+
+      <div className={`overflow-hidden rounded-lg border border-outline-variant/40 bg-surface-container-lowest shadow-card ${loading ? 'opacity-60' : ''}`}>
         <table className="w-full text-left text-sm">
           <thead className="border-b border-outline-variant/40 bg-surface-container-low">
             <tr>
@@ -160,6 +197,15 @@ export default function CompanyAttendanceListPage({
           </tbody>
         </table>
       </div>
+
+      <ListPagination
+        page={page}
+        totalPages={totalPages}
+        total={total}
+        pageSize={PAGE_SIZE}
+        loading={loading}
+        onPageChange={handlePageChange}
+      />
     </div>
   );
 }

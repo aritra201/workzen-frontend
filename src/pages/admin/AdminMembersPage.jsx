@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { inviteMember, listMembers, resendMemberInvite, updateMemberStatus } from '../../api/members.js';
+import ListPagination from '../../components/common/ListPagination.jsx';
 import Button from '../../components/ui/Button.jsx';
 import TextField from '../../components/ui/TextField.jsx';
 import Modal, { ModalActions } from '../../components/ui/Modal.jsx';
@@ -8,6 +9,8 @@ import StatusChangeConfirmModal from '../../components/admin/StatusChangeConfirm
 import ErrorMessage from '../../components/common/ErrorMessage.jsx';
 import LoadingSpinner from '../../components/common/LoadingSpinner.jsx';
 import StatusChip from '../../components/ui/StatusChip.jsx';
+
+const PAGE_SIZE = 20;
 
 function memberStatus(member) {
   if (member.isActive) {
@@ -18,6 +21,9 @@ function memberStatus(member) {
 
 export default function AdminMembersPage() {
   const [members, setMembers] = useState([]);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [inviteOpen, setInviteOpen] = useState(false);
@@ -25,21 +31,26 @@ export default function AdminMembersPage() {
   const [busy, setBusy] = useState(false);
   const [statusConfirm, setStatusConfirm] = useState(null);
 
-  async function load() {
+  const load = useCallback(async (pageNum = page) => {
     setLoading(true);
     setError('');
     try {
-      const data = await listMembers();
-      setMembers(data.members || []);
+      const data = await listMembers({ page: pageNum, limit: PAGE_SIZE });
+      setMembers(data.items || data.members || []);
+      setTotal(data.total ?? 0);
+      setTotalPages(data.totalPages ?? 0);
+      setPage(data.page ?? pageNum);
     } catch (err) {
       setError(err.message);
+      setMembers([]);
     } finally {
       setLoading(false);
     }
-  }
+  }, [page]);
 
   useEffect(() => {
-    load();
+    load(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- initial load
   }, []);
 
   async function handleInvite() {
@@ -49,7 +60,7 @@ export default function AdminMembersPage() {
       await inviteMember({ email: inviteEmail });
       setInviteOpen(false);
       setInviteEmail('');
-      await load();
+      await load(page);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -61,7 +72,7 @@ export default function AdminMembersPage() {
     setError('');
     try {
       await resendMemberInvite({ email: member.email });
-      await load();
+      await load(page);
     } catch (err) {
       setError(err.message);
     }
@@ -75,7 +86,7 @@ export default function AdminMembersPage() {
     try {
       await updateMemberStatus(member.id, { isActive: nextActive });
       setStatusConfirm(null);
-      await load();
+      await load(page);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -83,7 +94,12 @@ export default function AdminMembersPage() {
     }
   }
 
-  if (loading) return <LoadingSpinner />;
+  const rangeStart = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
+  const rangeEnd = Math.min(page * PAGE_SIZE, total);
+
+  if (loading && members.length === 0 && !error) {
+    return <LoadingSpinner />;
+  }
 
   return (
     <div className="space-y-6">
@@ -93,7 +109,11 @@ export default function AdminMembersPage() {
       </div>
       <ErrorMessage message={error} />
 
-      <div className="overflow-hidden rounded-xl bg-surface-container-lowest shadow-card">
+      <p className="text-sm text-on-surface-variant">
+        {total === 0 ? 'No members yet.' : `Showing ${rangeStart}–${rangeEnd} of ${total}`}
+      </p>
+
+      <div className={`overflow-hidden rounded-xl bg-surface-container-lowest shadow-card ${loading ? 'opacity-60' : ''}`}>
         <table className="w-full text-left text-sm">
           <thead className="bg-surface-container-low text-xs uppercase text-outline">
             <tr>
@@ -104,49 +124,66 @@ export default function AdminMembersPage() {
             </tr>
           </thead>
           <tbody>
-            {members.map((member) => {
-              const status = memberStatus(member);
-              const showResend = !member.isActive;
+            {members.length === 0 ? (
+              <tr>
+                <td colSpan={4} className="px-4 py-10 text-center text-on-surface-variant">
+                  No members to show.
+                </td>
+              </tr>
+            ) : (
+              members.map((member) => {
+                const status = memberStatus(member);
+                const showResend = !member.isActive;
 
-              return (
-                <tr key={member.id} className="border-t border-surface-container-high">
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-3">
-                      <PersonAvatar
-                        name={member.name}
-                        email={member.email}
-                        src={member.profilePicture}
-                        size={44}
-                      />
-                      <span className="font-medium">{member.name || '—'}</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">{member.email}</td>
-                  <td className="px-4 py-3">
-                    <StatusChip tone={status.tone}>{status.label}</StatusChip>
-                  </td>
-                  <td className="px-4 py-3 text-right space-x-2">
-                    {showResend ? (
-                      <Button size="sm" variant="secondary" onClick={() => handleResend(member)}>
-                        Resend invite
+                return (
+                  <tr key={member.id} className="border-t border-surface-container-high">
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <PersonAvatar
+                          name={member.name}
+                          email={member.email}
+                          src={member.profilePicture}
+                          size={44}
+                        />
+                        <span className="font-medium">{member.name || '—'}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">{member.email}</td>
+                    <td className="px-4 py-3">
+                      <StatusChip tone={status.tone}>{status.label}</StatusChip>
+                    </td>
+                    <td className="px-4 py-3 text-right space-x-2">
+                      {showResend ? (
+                        <Button size="sm" variant="secondary" onClick={() => handleResend(member)}>
+                          Resend invite
+                        </Button>
+                      ) : null}
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() =>
+                          setStatusConfirm({ member, nextActive: !member.isActive })
+                        }
+                      >
+                        {member.isActive ? 'Deactivate' : 'Activate'}
                       </Button>
-                    ) : null}
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() =>
-                        setStatusConfirm({ member, nextActive: !member.isActive })
-                      }
-                    >
-                      {member.isActive ? 'Deactivate' : 'Activate'}
-                    </Button>
-                  </td>
-                </tr>
-              );
-            })}
+                    </td>
+                  </tr>
+                );
+              })
+            )}
           </tbody>
         </table>
       </div>
+
+      <ListPagination
+        page={page}
+        totalPages={totalPages}
+        total={total}
+        pageSize={PAGE_SIZE}
+        loading={loading}
+        onPageChange={(next) => load(next)}
+      />
 
       <Modal open={inviteOpen} title="Invite member" onClose={() => setInviteOpen(false)} closeOnBackdrop={false}>
         <TextField

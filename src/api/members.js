@@ -1,7 +1,14 @@
 import { apiRequest } from './client.js';
 
-export function listMembers() {
-  return apiRequest('/api/members/');
+export function listMembers(params = {}) {
+  const search = new URLSearchParams();
+  Object.entries(params).forEach(([key, val]) => {
+    if (val != null && val !== '') {
+      search.set(key, String(val));
+    }
+  });
+  const qs = search.toString();
+  return apiRequest(qs ? `/api/members/?${qs}` : '/api/members/');
 }
 
 export function inviteMember(body) {

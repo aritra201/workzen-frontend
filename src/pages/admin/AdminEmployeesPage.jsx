@@ -1,5 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { inviteEmployee, listEmployees, resendEmployeeInvite, updateEmployeeStatus } from '../../api/employees.js';
+import { employeeIdsQueryParam } from '../../utils/employeeIds.js';
+import EmployeeFilterSelect from '../../components/admin/EmployeeFilterSelect.jsx';
+import ListPagination from '../../components/common/ListPagination.jsx';
 import Button from '../../components/ui/Button.jsx';
 import TextField from '../../components/ui/TextField.jsx';
 import Modal, { ModalActions } from '../../components/ui/Modal.jsx';
@@ -8,6 +11,8 @@ import StatusChangeConfirmModal from '../../components/admin/StatusChangeConfirm
 import ErrorMessage from '../../components/common/ErrorMessage.jsx';
 import LoadingSpinner from '../../components/common/LoadingSpinner.jsx';
 import StatusChip from '../../components/ui/StatusChip.jsx';
+
+const PAGE_SIZE = 20;
 
 function employeeStatus(employee) {
   if (!employee.userId) {
@@ -21,6 +26,10 @@ function employeeStatus(employee) {
 
 export default function AdminEmployeesPage() {
   const [employees, setEmployees] = useState([]);
+  const [filterEmployeeIds, setFilterEmployeeIds] = useState([]);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [inviteOpen, setInviteOpen] = useState(false);
@@ -28,22 +37,40 @@ export default function AdminEmployeesPage() {
   const [busy, setBusy] = useState(false);
   const [statusConfirm, setStatusConfirm] = useState(null);
 
-  async function load() {
-    setLoading(true);
-    setError('');
-    try {
-      const data = await listEmployees();
-      setEmployees(data.employees || []);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  }
+  const load = useCallback(
+    async (pageNum = page, selectedIds = filterEmployeeIds) => {
+      setLoading(true);
+      setError('');
+      try {
+        const params = { page: pageNum, limit: PAGE_SIZE };
+        const employeeId = employeeIdsQueryParam(selectedIds);
+        if (employeeId) {
+          params.employeeId = employeeId;
+        }
+        const data = await listEmployees(params);
+        setEmployees(data.items || data.employees || []);
+        setTotal(data.total ?? 0);
+        setTotalPages(data.totalPages ?? 0);
+        setPage(data.page ?? pageNum);
+      } catch (err) {
+        setError(err.message);
+        setEmployees([]);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [page, filterEmployeeIds]
+  );
 
   useEffect(() => {
-    load();
+    load(1, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- initial load
   }, []);
+
+  function handleApplyFilter() {
+    setPage(1);
+    load(1, filterEmployeeIds);
+  }
 
   async function handleInvite() {
     setBusy(true);
@@ -52,7 +79,7 @@ export default function AdminEmployeesPage() {
       await inviteEmployee(form);
       setInviteOpen(false);
       setForm({ employeeName: '', employeeEmail: '' });
-      await load();
+      await load(page, filterEmployeeIds);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -64,7 +91,7 @@ export default function AdminEmployeesPage() {
     setError('');
     try {
       await resendEmployeeInvite({ employeeEmail: employee.employeeEmail });
-      await load();
+      await load(page, filterEmployeeIds);
     } catch (err) {
       setError(err.message);
     }
@@ -78,7 +105,7 @@ export default function AdminEmployeesPage() {
     try {
       await updateEmployeeStatus(employee.employeeId, { isActive: nextActive });
       setStatusConfirm(null);
-      await load();
+      await load(page, filterEmployeeIds);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -86,17 +113,45 @@ export default function AdminEmployeesPage() {
     }
   }
 
-  if (loading) return <LoadingSpinner />;
+  const rangeStart = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
+  const rangeEnd = Math.min(page * PAGE_SIZE, total);
+
+  if (loading && employees.length === 0 && !error) {
+    return <LoadingSpinner />;
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold">Employees</h1>
+        <h1 className="text-2xl font-bold">Employees & labour</h1>
         <Button onClick={() => setInviteOpen(true)}>Invite employee</Button>
       </div>
       <ErrorMessage message={error} />
 
-      <div className="overflow-hidden rounded-xl bg-surface-container-lowest shadow-card">
+      <div className="flex flex-col gap-4 rounded-xl border border-outline-variant/40 bg-surface-container-lowest p-4 shadow-card sm:flex-row sm:flex-wrap sm:items-end">
+        <EmployeeFilterSelect
+          mode="multiple"
+          label="Filter by employee"
+          value={filterEmployeeIds}
+          onChange={setFilterEmployeeIds}
+          className="min-w-[240px] flex-1 sm:max-w-md"
+          disabled={loading}
+        />
+        <Button
+          type="button"
+          onClick={handleApplyFilter}
+          disabled={loading}
+          className="h-12 w-full shrink-0 px-8 sm:w-auto"
+        >
+          Apply filter
+        </Button>
+      </div>
+
+      <p className="text-sm text-on-surface-variant">
+        {total === 0 ? 'No employees match this filter.' : `Showing ${rangeStart}–${rangeEnd} of ${total}`}
+      </p>
+
+      <div className={`overflow-hidden rounded-xl bg-surface-container-lowest shadow-card ${loading ? 'opacity-60' : ''}`}>
         <table className="w-full text-left text-sm">
           <thead className="bg-surface-container-low text-xs uppercase text-outline">
             <tr>
@@ -107,64 +162,81 @@ export default function AdminEmployeesPage() {
             </tr>
           </thead>
           <tbody>
-            {employees.map((employee) => {
-              const status = employeeStatus(employee);
-              const invitationPending = !employee.userId;
-              const canDeactivate = employee.userId && employee.isActive;
-              const canActivate = employee.userId && !employee.isActive;
+            {employees.length === 0 ? (
+              <tr>
+                <td colSpan={4} className="px-4 py-10 text-center text-on-surface-variant">
+                  No employees to show.
+                </td>
+              </tr>
+            ) : (
+              employees.map((employee) => {
+                const status = employeeStatus(employee);
+                const invitationPending = !employee.userId;
+                const canDeactivate = employee.userId && employee.isActive;
+                const canActivate = employee.userId && !employee.isActive;
 
-              return (
-                <tr key={employee.employeeId} className="border-t border-surface-container-high">
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-3">
-                      <PersonAvatar
-                        name={employee.employeeName}
-                        email={employee.employeeEmail}
-                        src={employee.profilePicture}
-                        size={44}
-                      />
-                      <span className="font-medium">{employee.employeeName}</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">{employee.employeeEmail}</td>
-                  <td className="px-4 py-3">
-                    <StatusChip tone={status.tone}>{status.label}</StatusChip>
-                  </td>
-                  <td className="px-4 py-3 text-right space-x-2">
-                    {invitationPending ? (
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        onClick={() => handleResend(employee)}
-                      >
-                        Resend invite
-                      </Button>
-                    ) : null}
-                    {canDeactivate ? (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setStatusConfirm({ employee, nextActive: false })}
-                      >
-                        Deactivate
-                      </Button>
-                    ) : null}
-                    {canActivate ? (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setStatusConfirm({ employee, nextActive: true })}
-                      >
-                        Activate
-                      </Button>
-                    ) : null}
-                  </td>
-                </tr>
-              );
-            })}
+                return (
+                  <tr key={employee.employeeId} className="border-t border-surface-container-high">
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <PersonAvatar
+                          name={employee.employeeName}
+                          email={employee.employeeEmail}
+                          src={employee.profilePicture}
+                          size={44}
+                        />
+                        <span className="font-medium">{employee.employeeName}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">{employee.employeeEmail}</td>
+                    <td className="px-4 py-3">
+                      <StatusChip tone={status.tone}>{status.label}</StatusChip>
+                    </td>
+                    <td className="px-4 py-3 text-right space-x-2">
+                      {invitationPending ? (
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => handleResend(employee)}
+                        >
+                          Resend invite
+                        </Button>
+                      ) : null}
+                      {canDeactivate ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setStatusConfirm({ employee, nextActive: false })}
+                        >
+                          Deactivate
+                        </Button>
+                      ) : null}
+                      {canActivate ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setStatusConfirm({ employee, nextActive: true })}
+                        >
+                          Activate
+                        </Button>
+                      ) : null}
+                    </td>
+                  </tr>
+                );
+              })
+            )}
           </tbody>
         </table>
       </div>
+
+      <ListPagination
+        page={page}
+        totalPages={totalPages}
+        total={total}
+        pageSize={PAGE_SIZE}
+        loading={loading}
+        onPageChange={(next) => load(next, filterEmployeeIds)}
+      />
 
       <Modal open={inviteOpen} title="Invite employee" onClose={() => setInviteOpen(false)} closeOnBackdrop={false}>
         <div className="space-y-3">

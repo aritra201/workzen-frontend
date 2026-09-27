@@ -1,7 +1,19 @@
 import { apiRequest } from './client.js';
 
-export function listEmployees() {
-  return apiRequest('/api/employees/');
+export function listEmployees(params = {}) {
+  const search = new URLSearchParams();
+  Object.entries(params).forEach(([key, val]) => {
+    if (val != null && val !== '') {
+      search.set(key, String(val));
+    }
+  });
+  const qs = search.toString();
+  return apiRequest(qs ? `/api/employees/?${qs}` : '/api/employees/');
+}
+
+/** Authenticated admin dropdown (active employees with linked accounts). */
+export function listEmployeeDropdownOptions() {
+  return apiRequest('/api/employees/dropdown-options');
 }
 
 /** Public: active employees with linked accounts — id, name, email for dropdowns. */
