@@ -10,6 +10,8 @@ import { formatCurrencyInr, formatDateLabel } from '../../utils/format.js';
 import { getSubmitGeoLocation } from '../../utils/geolocation.js';
 import { statusLabel, statusTone } from '../../utils/attendanceUi.js';
 import ShiftConfirmModal from './ShiftConfirmModal.jsx';
+import WorkPictureLightboxModal from './WorkPictureLightboxModal.jsx';
+import { getShiftWorkPictureUrls } from './WorkPicturesGallery.jsx';
 import Button from '../ui/Button.jsx';
 import Icon from '../ui/Icon.jsx';
 import StatusChip from '../ui/StatusChip.jsx';
@@ -35,6 +37,7 @@ export default function ShiftAttendanceCard({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [picturePreviewIndex, setPicturePreviewIndex] = useState(null);
 
   useEffect(() => {
     setAmount(shift?.amount ?? '');
@@ -49,7 +52,8 @@ export default function ShiftAttendanceCard({
   const commentValid = Boolean(comment.trim());
   const hasSavedSubmit = hasSavedShiftSubmit(shift);
   const canSubmitFirst = amountValid || commentValid;
-  const pictureCount = (shift?.workPictures || []).length;
+  const pictureUrls = getShiftWorkPictureUrls(shift);
+  const pictureCount = pictureUrls.length;
 
   function submitHint() {
     if (hasSavedSubmit || disabled) {
@@ -163,6 +167,14 @@ export default function ShiftAttendanceCard({
         ) : null}
       </div>
 
+      <WorkPictureLightboxModal
+        open={picturePreviewIndex != null}
+        urls={pictureUrls}
+        index={picturePreviewIndex ?? 0}
+        onClose={() => setPicturePreviewIndex(null)}
+        onIndexChange={setPicturePreviewIndex}
+      />
+
       <ShiftConfirmModal
         open={confirmOpen}
         shiftLabel={meta.label}
@@ -210,8 +222,15 @@ export default function ShiftAttendanceCard({
               Proof of work {pictureCount ? `(${pictureCount})` : '(optional)'}
             </p>
             <div className="flex flex-wrap gap-2">
-              {(shift?.workPictures || []).map((url) => (
-                <img key={url} src={url} alt="" className="h-14 w-14 rounded-lg object-cover ring-1 ring-outline-variant" />
+              {pictureUrls.map((url, index) => (
+                <button
+                  key={url}
+                  type="button"
+                  onClick={() => setPicturePreviewIndex(index)}
+                  className="overflow-hidden rounded-lg ring-1 ring-outline-variant focus:outline-none focus:ring-2 focus:ring-primary/40"
+                >
+                  <img src={url} alt="" className="h-14 w-14 object-cover" />
+                </button>
               ))}
               {!disabled ? (
                 <label className="flex h-14 w-14 cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-outline-variant bg-surface-container-low text-on-surface-variant">

@@ -4,10 +4,12 @@ import { getCompanyAttendanceRecord, verifyShift, adminReplyCommentThread } from
 import { getMyAttendanceRecord, replyCommentThread } from '../../api/attendance.js';
 import { formatCurrencyInr, formatDateLabel } from '../../utils/format.js';
 import {
+  formatShiftResponseKey,
   formatShiftStatus,
   responseKeyToApiShiftKey,
   shiftStatusChipTone,
 } from '../../utils/shiftLabels.js';
+import VerifyShiftConfirmModal from '../../components/attendance/VerifyShiftConfirmModal.jsx';
 import Button from '../../components/ui/Button.jsx';
 import TextField from '../../components/ui/TextField.jsx';
 import PersonAvatar from '../../components/ui/PersonAvatar.jsx';
@@ -35,6 +37,8 @@ export default function AttendanceRecordDetailPage({ mode, backTo }) {
   const [logRefreshToken, setLogRefreshToken] = useState(0);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+  const [verifyTarget, setVerifyTarget] = useState(null);
+  const [verifyBusy, setVerifyBusy] = useState(false);
 
   useEffect(() => {
     if (!attendanceId) return;
@@ -56,15 +60,31 @@ export default function AttendanceRecordDetailPage({ mode, backTo }) {
     load();
   }, [attendanceId, mode]);
 
-  async function handleVerify(shiftKey) {
+  async function handleVerifyConfirm() {
+    if (!verifyTarget?.shiftKey) {
+      return;
+    }
+    setError('');
+    setVerifyBusy(true);
     try {
-      await verifyShift({ attendanceId, shiftKey });
+      await verifyShift({ attendanceId, shiftKey: verifyTarget.shiftKey });
       const detail = await getCompanyAttendanceRecord({ attendanceId });
       setRecord(detail);
       setLogRefreshToken((n) => n + 1);
+      setVerifyTarget(null);
     } catch (err) {
       setError(err.message);
+    } finally {
+      setVerifyBusy(false);
     }
+  }
+
+  function openVerifyModal(responseKey, shiftKey, shift) {
+    setVerifyTarget({
+      shiftKey,
+      shiftLabel: formatShiftResponseKey(responseKey),
+      amountLabel: shift.amount != null ? formatCurrencyInr(shift.amount) : null,
+    });
   }
 
   async function handleReply(shiftKey) {
@@ -152,16 +172,19 @@ export default function AttendanceRecordDetailPage({ mode, backTo }) {
                 </div>
                 <WorkPicturesGallery shift={shift} compact />
                 {mode === 'admin' && shift.status === 'pending_verification' ? (
-                  <Button size="sm" onClick={() => handleVerify(shiftKey)}>Verify shift</Button>
+                  <Button size="sm" onClick={() => openVerifyModal(key, shiftKey, shift)}>
+                    Verify shift
+                  </Button>
                 ) : null}
                 {(mode === 'admin' || mode === 'employee') && (
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
                     <TextField
                       id={`reply-${key}`}
+                      label="Thread reply"
                       value={reply}
                       onChange={(e) => setReply(e.target.value)}
-                      placeholder="Thread reply"
-                      className="flex-1"
+                      placeholder="Write a reply…"
+                      className="min-w-0 flex-1"
                     />
                     <Button size="sm" variant="secondary" onClick={() => handleReply(shiftKey)}>Reply</Button>
                   </div>
@@ -175,6 +198,21 @@ export default function AttendanceRecordDetailPage({ mode, backTo }) {
       {showActivityLog ? (
         <AttendanceActivityLogSection attendanceId={attendanceId} refreshToken={logRefreshToken} />
       ) : null}
+
+      <VerifyShiftConfirmModal
+        open={Boolean(verifyTarget)}
+        employeeName={employeeName}
+        shiftLabel={verifyTarget?.shiftLabel}
+        dateLabel={formatDateLabel(record.date)}
+        amountLabel={verifyTarget?.amountLabel}
+        loading={verifyBusy}
+        onCancel={() => {
+          if (!verifyBusy) {
+            setVerifyTarget(null);
+          }
+        }}
+        onConfirm={handleVerifyConfirm}
+      />
     </div>
   );
 }

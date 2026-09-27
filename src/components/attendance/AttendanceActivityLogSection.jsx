@@ -198,7 +198,11 @@ export default function AttendanceActivityLogSection({ attendanceId, refreshToke
       ) : !logs.length ? (
         <p className="mt-4 text-sm text-on-surface-variant">No activity entries for this attendance yet.</p>
       ) : (
-        <ul className="mt-4 divide-y divide-surface-container-high">
+        <div
+          className="mt-4 max-h-[min(28rem,55vh)] overflow-y-auto overscroll-y-contain rounded-lg border border-outline-variant/30 bg-surface-container-lowest/50"
+          aria-label="Activity log entries"
+        >
+          <ul className="divide-y divide-surface-container-high">
           {logs.map((log) => {
             const id = log.activityLogId || log.id;
             const actorLine =
@@ -236,7 +240,8 @@ export default function AttendanceActivityLogSection({ attendanceId, refreshToke
               </li>
             );
           })}
-        </ul>
+          </ul>
+        </div>
       )}
 
       <Modal
