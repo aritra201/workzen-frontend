@@ -15,6 +15,9 @@ import { MobileListCard, MobileListStack } from '../../components/common/MobileL
 const PAGE_SIZE = 20;
 
 function memberStatus(member) {
+  if (!member.userId) {
+    return { label: 'Invitation pending', tone: 'pending' };
+  }
   if (member.isActive) {
     return { label: 'Active', tone: 'verified' };
   }
@@ -126,7 +129,9 @@ export default function AdminMembersPage() {
         <MobileListStack className={loading ? 'opacity-60' : ''}>
           {members.map((member) => {
             const status = memberStatus(member);
-            const showResend = !member.isActive;
+            const invitationPending = !member.userId;
+            const canDeactivate = member.userId && member.isActive;
+            const canActivate = member.userId && !member.isActive;
             return (
               <MobileListCard key={member.id}>
                 <div className="flex items-center gap-3">
@@ -145,18 +150,29 @@ export default function AdminMembersPage() {
                   <StatusChip tone={status.tone}>{status.label}</StatusChip>
                 </div>
                 <div className="mt-4 flex flex-wrap gap-2">
-                  {showResend ? (
+                  {invitationPending ? (
                     <Button size="sm" variant="secondary" onClick={() => handleResend(member)}>
                       Resend invite
                     </Button>
                   ) : null}
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setStatusConfirm({ member, nextActive: !member.isActive })}
-                  >
-                    {member.isActive ? 'Deactivate' : 'Activate'}
-                  </Button>
+                  {canDeactivate ? (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setStatusConfirm({ member, nextActive: false })}
+                    >
+                      Deactivate
+                    </Button>
+                  ) : null}
+                  {canActivate ? (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setStatusConfirm({ member, nextActive: true })}
+                    >
+                      Activate
+                    </Button>
+                  ) : null}
                 </div>
               </MobileListCard>
             );
@@ -181,7 +197,9 @@ export default function AdminMembersPage() {
           <tbody>
               {members.map((member) => {
                 const status = memberStatus(member);
-                const showResend = !member.isActive;
+                const invitationPending = !member.userId;
+                const canDeactivate = member.userId && member.isActive;
+                const canActivate = member.userId && !member.isActive;
 
                 return (
                   <tr key={member.id} className="border-t border-surface-container-high">
@@ -201,20 +219,29 @@ export default function AdminMembersPage() {
                       <StatusChip tone={status.tone}>{status.label}</StatusChip>
                     </td>
                     <td className="px-4 py-3 text-right space-x-2">
-                      {showResend ? (
+                      {invitationPending ? (
                         <Button size="sm" variant="secondary" onClick={() => handleResend(member)}>
                           Resend invite
                         </Button>
                       ) : null}
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() =>
-                          setStatusConfirm({ member, nextActive: !member.isActive })
-                        }
-                      >
-                        {member.isActive ? 'Deactivate' : 'Activate'}
-                      </Button>
+                      {canDeactivate ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setStatusConfirm({ member, nextActive: false })}
+                        >
+                          Deactivate
+                        </Button>
+                      ) : null}
+                      {canActivate ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setStatusConfirm({ member, nextActive: true })}
+                        >
+                          Activate
+                        </Button>
+                      ) : null}
                     </td>
                   </tr>
                 );
@@ -265,7 +292,7 @@ export default function AdminMembersPage() {
       <StatusChangeConfirmModal
         open={Boolean(statusConfirm)}
         kind="member"
-        personLabel={statusConfirm?.member?.email}
+        personLabel={statusConfirm?.member?.name || statusConfirm?.member?.email}
         nextActive={statusConfirm?.nextActive}
         loading={busy}
         onCancel={() => setStatusConfirm(null)}
