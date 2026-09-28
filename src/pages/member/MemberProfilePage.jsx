@@ -9,6 +9,7 @@ import TextField from '../../components/ui/TextField.jsx';
 import PersonAvatar from '../../components/ui/PersonAvatar.jsx';
 import ErrorMessage from '../../components/common/ErrorMessage.jsx';
 import LoadingSpinner from '../../components/common/LoadingSpinner.jsx';
+import ChangePasswordSection from '../../components/auth/ChangePasswordSection.jsx';
 
 export default function MemberProfilePage() {
   const [profile, setProfile] = useState(null);
@@ -120,6 +121,8 @@ export default function MemberProfilePage() {
           {saving ? 'Saving…' : 'Save changes'}
         </Button>
       </form>
+
+      <ChangePasswordSection />
     </div>
   );
 }

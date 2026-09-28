@@ -67,3 +67,10 @@ export function resetPassword(body) {
 export function fetchMe(options = {}) {
   return apiRequest('/api/auth/me', options);
 }
+
+export function changePassword(body) {
+  return apiRequest('/api/auth/change-password', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}

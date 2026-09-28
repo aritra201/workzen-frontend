@@ -14,6 +14,7 @@ import CountryNameCombobox from '../../components/ui/CountryNameCombobox.jsx';
 import PersonAvatar from '../../components/ui/PersonAvatar.jsx';
 import ErrorMessage from '../../components/common/ErrorMessage.jsx';
 import LoadingSpinner from '../../components/common/LoadingSpinner.jsx';
+import ChangePasswordSection from '../../components/auth/ChangePasswordSection.jsx';
 
 const EMPTY_FORM = {
   employeeName: '',
@@ -258,6 +259,8 @@ export default function EmployeeProfilePage() {
           {saving ? 'Saving…' : 'Save profile'}
         </Button>
       </form>
+
+      <ChangePasswordSection />
     </div>
   );
 }

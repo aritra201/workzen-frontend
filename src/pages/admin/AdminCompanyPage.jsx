@@ -8,6 +8,7 @@ import CountryCodeCombobox from '../../components/ui/CountryCodeCombobox.jsx';
 import CountryNameCombobox from '../../components/ui/CountryNameCombobox.jsx';
 import ErrorMessage from '../../components/common/ErrorMessage.jsx';
 import LoadingSpinner from '../../components/common/LoadingSpinner.jsx';
+import ChangePasswordSection from '../../components/auth/ChangePasswordSection.jsx';
 
 const EMPTY_FORM = {
   companyName: '',
@@ -250,6 +251,8 @@ export default function AdminCompanyPage() {
 
         <Button type="submit" disabled={saving}>{saving ? 'Saving…' : 'Save changes'}</Button>
       </form>
+
+      <ChangePasswordSection />
     </div>
   );
 }
