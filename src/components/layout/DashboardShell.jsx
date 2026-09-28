@@ -6,8 +6,18 @@ import Button from '../ui/Button.jsx';
 import ThemeToggle from '../ui/ThemeToggle.jsx';
 
 const WIDTH = {
-  wide: { aside: 'w-72', pad: 'md:pl-72', header: 'md:left-72' },
-  narrow: { aside: 'w-64', pad: 'md:pl-64', header: 'md:left-64' },
+  wide: {
+    aside: 'w-72',
+    pad: 'md:pl-72',
+    header: 'md:left-72',
+    drawer: 'w-[min(100%,18rem)] max-w-[18rem]',
+  },
+  narrow: {
+    aside: 'w-64',
+    pad: 'md:pl-64',
+    header: 'md:left-64',
+    drawer: 'w-[min(100%,16rem)] max-w-[16rem]',
+  },
 };
 
 export default function DashboardShell({
@@ -67,7 +77,7 @@ export default function DashboardShell({
       ) : null}
 
       <aside
-        className={`fixed left-0 top-0 z-50 flex h-full ${layout.aside} w-[min(100%,18rem)] max-w-[18rem] flex-col justify-between border-r border-outline-variant/40 bg-surface-container-lowest shadow-header transition-transform duration-200 ease-out dark:shadow-none ${
+        className={`fixed left-0 top-0 z-50 flex h-full ${layout.aside} ${layout.drawer} flex-col justify-between border-r border-outline-variant/40 bg-surface-container-lowest shadow-header transition-transform duration-200 ease-out dark:shadow-none ${
           navOpen ? 'translate-x-0' : '-translate-x-full'
         } md:translate-x-0`}
         id="app-sidebar"
