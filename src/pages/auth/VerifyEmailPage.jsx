@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { resendVerification, verifyEmail } from '../../api/auth.js';
+import { useAuth } from '../../hooks/useAuth.js';
+import { homePathForRole, pickPrimaryMembership } from '../../utils/membership.js';
 import { ROUTES } from '../../constants/routes.js';
 import OtpInput from '../../components/ui/OtpInput.jsx';
 import Button from '../../components/ui/Button.jsx';
@@ -10,6 +12,7 @@ import TextField from '../../components/ui/TextField.jsx';
 export default function VerifyEmailPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { loginWithTokens } = useAuth();
   const [email, setEmail] = useState(location.state?.email || '');
   const [otp, setOtp] = useState('');
   const [message, setMessage] = useState('');
@@ -21,8 +24,12 @@ export default function VerifyEmailPage() {
     setError('');
     setBusy(true);
     try {
-      await verifyEmail({ email, otp });
-      navigate(ROUTES.login, { replace: true, state: { verified: true } });
+      const tokens = await verifyEmail({ email, otp });
+      const me = await loginWithTokens(tokens);
+      const membership = pickPrimaryMembership(me.memberships);
+      navigate(membership?.role ? homePathForRole(membership.role) : ROUTES.admin.dashboard, {
+        replace: true,
+      });
     } catch (err) {
       setError(err.message);
     } finally {
