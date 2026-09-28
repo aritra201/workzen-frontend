@@ -29,7 +29,7 @@ export default function AdminMembersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [inviteOpen, setInviteOpen] = useState(false);
-  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteForm, setInviteForm] = useState({ memberName: '', email: '' });
   const [busy, setBusy] = useState(false);
   const [statusConfirm, setStatusConfirm] = useState(null);
 
@@ -59,9 +59,12 @@ export default function AdminMembersPage() {
     setBusy(true);
     setError('');
     try {
-      await inviteMember({ email: inviteEmail });
+      await inviteMember({
+        memberName: inviteForm.memberName.trim(),
+        email: inviteForm.email.trim(),
+      });
       setInviteOpen(false);
-      setInviteEmail('');
+      setInviteForm({ memberName: '', email: '' });
       await load(page);
     } catch (err) {
       setError(err.message);
@@ -230,13 +233,25 @@ export default function AdminMembersPage() {
       />
 
       <Modal open={inviteOpen} title="Invite member" onClose={() => setInviteOpen(false)} closeOnBackdrop={false}>
-        <TextField
-          id="invite-email"
-          label="Email"
-          type="email"
-          value={inviteEmail}
-          onChange={(e) => setInviteEmail(e.target.value)}
-        />
+        <div className="space-y-3">
+          <TextField
+            id="invite-member-name"
+            label="Name"
+            icon="person"
+            value={inviteForm.memberName}
+            onChange={(e) => setInviteForm({ ...inviteForm, memberName: e.target.value })}
+            required
+          />
+          <TextField
+            id="invite-email"
+            label="Email"
+            type="email"
+            icon="alternate_email"
+            value={inviteForm.email}
+            onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })}
+            required
+          />
+        </div>
         <div className="mt-6">
           <ModalActions
             confirmLabel="Send invite"
