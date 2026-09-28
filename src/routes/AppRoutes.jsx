@@ -36,15 +36,17 @@ import AttendanceRecordDetailPage from '../pages/shared/AttendanceRecordDetailPa
 import NotFoundPage from '../pages/NotFoundPage.jsx';
 import { WORKZEN_LOGO_SRC } from '../constants/brand.js';
 import { Link } from 'react-router-dom';
+import ThemeToggle from '../components/ui/ThemeToggle.jsx';
 
 function PublicShell({ children }) {
   return (
     <div className="min-h-screen bg-surface">
-      <header className="border-b border-surface-container-high bg-surface-container-lowest/90 px-margin py-4 shadow-header">
+      <header className="flex items-center justify-between border-b border-surface-container-high bg-surface-container-lowest/90 px-4 py-4 shadow-header sm:px-margin">
         <Link to={ROUTES.home} className="inline-flex items-center gap-2">
           <img src={WORKZEN_LOGO_SRC} alt="" className="h-8" />
           <span className="font-semibold">WorkZen</span>
         </Link>
+        <ThemeToggle />
       </header>
       <main className="px-margin py-8">{children}</main>
     </div>

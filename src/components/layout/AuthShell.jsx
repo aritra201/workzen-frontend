@@ -2,6 +2,7 @@ import { Link, Outlet } from 'react-router-dom';
 import { WORKZEN_LOGO_SRC } from '../../constants/brand.js';
 import { ROUTES } from '../../constants/routes.js';
 import Icon from '../ui/Icon.jsx';
+import ThemeToggle from '../ui/ThemeToggle.jsx';
 
 export default function AuthShell() {
   return (
@@ -15,10 +16,13 @@ export default function AuthShell() {
               Employee & Wage Suite
             </span>
           </Link>
-          <Link to={ROUTES.login} className="flex items-center gap-1 text-sm text-on-surface-variant hover:text-primary">
-            <Icon name="help_outline" size={18} />
-            Help
-          </Link>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Link to={ROUTES.login} className="flex items-center gap-1 text-sm text-on-surface-variant hover:text-primary">
+              <Icon name="help_outline" size={18} />
+              Help
+            </Link>
+          </div>
         </div>
       </header>
 
