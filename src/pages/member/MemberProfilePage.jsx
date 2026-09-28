@@ -99,6 +99,7 @@ export default function MemberProfilePage() {
           id="memberName"
           label="Display name"
           value={name}
+          inputFilter="alphabetic"
           onChange={(e) => setName(e.target.value)}
           required
         />

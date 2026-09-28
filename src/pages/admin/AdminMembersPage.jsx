@@ -266,6 +266,7 @@ export default function AdminMembersPage() {
             label="Name"
             icon="person"
             value={inviteForm.memberName}
+            inputFilter="alphabetic"
             onChange={(e) => setInviteForm({ ...inviteForm, memberName: e.target.value })}
             required
           />

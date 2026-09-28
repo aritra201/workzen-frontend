@@ -9,6 +9,11 @@ import CountryNameCombobox from '../../components/ui/CountryNameCombobox.jsx';
 import ErrorMessage from '../../components/common/ErrorMessage.jsx';
 import LoadingSpinner from '../../components/common/LoadingSpinner.jsx';
 import ChangePasswordSection from '../../components/auth/ChangePasswordSection.jsx';
+import {
+  nationalPhoneHint,
+  trimPhoneToCountryLimit,
+  validateNationalPhone,
+} from '../../utils/inputFilters.js';
 
 const EMPTY_FORM = {
   companyName: '',
@@ -47,6 +52,7 @@ export default function AdminCompanyPage() {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [saving, setSaving] = useState(false);
+  const [phoneError, setPhoneError] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -87,7 +93,9 @@ export default function AdminCompanyPage() {
       ...prev,
       countryCode: option.dialCode,
       country: option.countryName,
+      phoneNumber: trimPhoneToCountryLimit(prev.phoneNumber, option.dialCode),
     }));
+    setPhoneError('');
   }
 
   function handleCountrySelect(option) {
@@ -95,11 +103,19 @@ export default function AdminCompanyPage() {
       ...prev,
       country: option.countryName,
       countryCode: option.dialCode,
+      phoneNumber: trimPhoneToCountryLimit(prev.phoneNumber, option.dialCode),
     }));
+    setPhoneError('');
   }
 
   async function handleSave(event) {
     event.preventDefault();
+    const phoneCheck = validateNationalPhone(form.phoneNumber, form.countryCode);
+    if (!phoneCheck.ok) {
+      setPhoneError(phoneCheck.message);
+      return;
+    }
+    setPhoneError('');
     setSaving(true);
     setError('');
     setMessage('');
@@ -191,6 +207,7 @@ export default function AdminCompanyPage() {
           id="ownerName"
           label="Owner name"
           value={form.ownerName}
+          inputFilter="alphabetic"
           onChange={(e) => updateField('ownerName', e.target.value)}
         />
         <TextField
@@ -214,8 +231,15 @@ export default function AdminCompanyPage() {
             label="Phone number"
             type="tel"
             value={form.phoneNumber}
-            onChange={(e) => updateField('phoneNumber', e.target.value)}
-            hint="National number without country code"
+            inputFilter="phone"
+            phoneCountryCode={form.countryCode}
+            inputMode="numeric"
+            error={phoneError}
+            onChange={(e) => {
+              setPhoneError('');
+              updateField('phoneNumber', e.target.value);
+            }}
+            hint={nationalPhoneHint(form.countryCode)}
           />
         </div>
 
@@ -231,6 +255,7 @@ export default function AdminCompanyPage() {
             id="state"
             label="State"
             value={form.state}
+            inputFilter="alphabetic"
             onChange={(e) => updateField('state', e.target.value)}
           />
         </div>
@@ -239,6 +264,8 @@ export default function AdminCompanyPage() {
           id="pinCode"
           label="PIN / postal code"
           value={form.pinCode}
+          inputFilter="numeric"
+          inputMode="numeric"
           onChange={(e) => updateField('pinCode', e.target.value)}
         />
 

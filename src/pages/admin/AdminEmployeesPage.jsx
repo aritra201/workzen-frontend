@@ -301,6 +301,7 @@ export default function AdminEmployeesPage() {
             id="emp-name"
             label="Name"
             value={form.employeeName}
+            inputFilter="alphabetic"
             onChange={(ev) => setForm({ ...form, employeeName: ev.target.value })}
           />
           <TextField

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Icon from './Icon.jsx';
+import { applyInputFilter, applyPhoneNationalInput } from '../../utils/inputFilters.js';
 
 function PasswordVisibilityToggle({ visible, onToggle }) {
   return (
@@ -24,10 +25,14 @@ export default function TextField({
   inputClassName = '',
   suffix,
   type,
+  inputFilter,
+  phoneCountryCode,
+  onChange,
   ...inputProps
 }) {
   const isPasswordField = type === 'password';
   const [passwordVisible, setPasswordVisible] = useState(false);
+  const [filterError, setFilterError] = useState('');
   const resolvedType = isPasswordField ? (passwordVisible ? 'text' : 'password') : type;
   const resolvedSuffix =
     suffix ??
@@ -40,6 +45,36 @@ export default function TextField({
         )
       : null);
   const paddingRight = resolvedSuffix ? 'pr-11' : 'pr-4';
+  const displayError = error || filterError;
+
+  function handleChange(event) {
+    if (!onChange) return;
+
+    if (inputFilter === 'phone') {
+      const { value, message } = applyPhoneNationalInput(event.target.value, phoneCountryCode);
+      setFilterError(message);
+      onChange({
+        ...event,
+        target: { ...event.target, value },
+        currentTarget: { ...event.currentTarget, value },
+      });
+      return;
+    }
+
+    if (inputFilter === 'alphabetic' || inputFilter === 'numeric') {
+      const { value, message } = applyInputFilter(inputFilter, event.target.value);
+      setFilterError(message);
+      onChange({
+        ...event,
+        target: { ...event.target, value },
+        currentTarget: { ...event.currentTarget, value },
+      });
+      return;
+    }
+
+    setFilterError('');
+    onChange(event);
+  }
 
   return (
     <label className={`block ${className}`} htmlFor={id}>
@@ -56,14 +91,15 @@ export default function TextField({
         ) : null}
         <input
           id={id}
-          className={`h-12 w-full max-w-full rounded-lg border border-outline-variant/40 bg-surface-container-lowest text-base text-on-surface placeholder:text-on-surface-variant/60 focus:shadow-[0_0_0_2px_#00685f] focus:outline-none transition-all md:text-sm ${icon ? `pl-11 ${paddingRight}` : `px-4 ${suffix ? 'pr-11' : ''}`} ${inputClassName}`}
+          className={`h-12 w-full max-w-full rounded-lg border text-base text-on-surface placeholder:text-on-surface-variant/60 focus:outline-none transition-all md:text-sm ${displayError ? 'border-error focus:shadow-[0_0_0_2px_#ba1a1a]' : 'border-outline-variant/40 focus:shadow-[0_0_0_2px_#00685f]'} bg-surface-container-lowest ${icon ? `pl-11 ${paddingRight}` : `px-4 ${suffix ? 'pr-11' : ''}`} ${inputClassName}`}
           type={resolvedType}
+          onChange={handleChange}
           {...inputProps}
         />
         {resolvedSuffix}
       </div>
-      {error ? <p className="mt-1 text-xs text-error">{error}</p> : null}
-      {hint && !error ? <p className="mt-1 text-xs text-on-surface-variant">{hint}</p> : null}
+      {displayError ? <p className="mt-1 text-xs text-error">{displayError}</p> : null}
+      {hint && !displayError ? <p className="mt-1 text-xs text-on-surface-variant">{hint}</p> : null}
     </label>
   );
 }
