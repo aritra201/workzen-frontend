@@ -3,7 +3,12 @@ import { confirmShift, updateShiftDetails } from '../../api/attendance.js';
 import { SHIFT_META } from '../../constants/shifts.js';
 import { formatCurrencyInr, formatDateLabel } from '../../utils/format.js';
 import { getSubmitGeoLocation } from '../../utils/geolocation.js';
-import { statusLabel, statusTone } from '../../utils/attendanceUi.js';
+import {
+  isShiftDetailsLockedForEmployee,
+  statusLabel,
+  statusTone,
+} from '../../utils/attendanceUi.js';
+import { SHIFT_STATUS } from '../../constants/shifts.js';
 import ShiftConfirmModal from './ShiftConfirmModal.jsx';
 import EmployeeShiftWorkPictures from './EmployeeShiftWorkPictures.jsx';
 import { getShiftWorkPictureUrls } from './WorkPicturesGallery.jsx';
@@ -33,7 +38,9 @@ export default function ShiftAttendanceCard({
 
   const marked = Boolean(shift?.marked);
   const locked = attendance?.lockAttendance || !attendance?.canEdit;
-  const disabled = readOnly || locked;
+  const detailsLocked = isShiftDetailsLockedForEmployee(shift, attendance);
+  const disabled = readOnly || locked || detailsLocked;
+  const verified = shift?.status === SHIFT_STATUS.VERIFIED;
   const hasShiftAmount =
     shift?.amount != null && !Number.isNaN(Number(shift.amount)) && Number(shift.amount) > 0;
   const pictureUrls = getShiftWorkPictureUrls(shift);
@@ -138,7 +145,13 @@ export default function ShiftAttendanceCard({
               disabled={disabled}
               onChange={(e) => setComment(e.target.value)}
               placeholder="Add notes about work on site"
-              hint="Optional — you can save or update anytime before verification"
+              hint={
+                verified
+                  ? 'This shift is verified — comment cannot be changed'
+                  : detailsLocked
+                    ? 'This shift can no longer be edited'
+                    : 'Optional — you can save or update until verification'
+              }
             />
 
             <EmployeeShiftWorkPictures

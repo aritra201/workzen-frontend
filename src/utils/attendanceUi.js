@@ -31,6 +31,15 @@ export function statusTone(status, lockAttendance) {
   return shiftStatusChipTone(status);
 }
 
+/** Comment and work pictures cannot be changed after verification (or rejection). */
+export function isShiftDetailsLockedForEmployee(shift, attendance) {
+  if (attendance?.lockAttendance || attendance?.canEdit === false) {
+    return true;
+  }
+  const status = shift?.status;
+  return status === SHIFT_STATUS.VERIFIED || status === SHIFT_STATUS.REJECTED;
+}
+
 export function statusLabel(status, lockAttendance) {
   if (lockAttendance) {
     return 'Locked';
