@@ -23,10 +23,11 @@ export function listMyAttendance(params = {}) {
   return apiRequest(`/api/attendance/me${qs}`);
 }
 
-export function confirmShift(options) {
+export function confirmShift(body, options) {
   return apiRequest('/api/attendance/me/today/shifts/confirm', {
     method: 'POST',
     headers: attendanceHeaders(options),
+    body: JSON.stringify(body || {}),
   });
 }
 

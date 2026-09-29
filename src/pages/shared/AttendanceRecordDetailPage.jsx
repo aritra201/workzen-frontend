@@ -18,6 +18,8 @@ import ShiftHighlightChips from '../../components/ui/ShiftHighlightChips.jsx';
 import WorkPicturesGallery from '../../components/attendance/WorkPicturesGallery.jsx';
 import ShiftWorkCommentPanel from '../../components/attendance/ShiftWorkCommentPanel.jsx';
 import AttendanceActivityLogSection from '../../components/attendance/AttendanceActivityLogSection.jsx';
+import AccordionSection from '../../components/ui/AccordionSection.jsx';
+import { AccordionGroup } from '../../components/ui/AccordionGroup.jsx';
 import ErrorMessage from '../../components/common/ErrorMessage.jsx';
 import LoadingSpinner from '../../components/common/LoadingSpinner.jsx';
 
@@ -118,6 +120,8 @@ export default function AttendanceRecordDetailPage({ mode, backTo }) {
 
   const shifts = record.shifts || {};
   const employeeName = getRecordEmployeeName(record);
+  const shiftEntries = Object.entries(shifts).filter(([, shift]) => Boolean(shift));
+  const defaultAccordionId = shiftEntries[0]?.[0] ?? null;
 
   return (
     <div className="mx-auto max-w-4xl space-y-4">
@@ -147,18 +151,30 @@ export default function AttendanceRecordDetailPage({ mode, backTo }) {
 
       <ErrorMessage message={error} />
 
-      {Object.entries(shifts).map(([key, shift]) => {
-        if (!shift) return null;
+      <AccordionGroup defaultOpenId={defaultAccordionId}>
+      {shiftEntries.map(([key, shift]) => {
         const shiftKey = responseKeyToApiShiftKey(key);
+        const shiftLabel = formatShiftResponseKey(key);
+        const amountLabel =
+          shift.amount != null ? formatCurrencyInr(shift.amount) : 'No amount';
+
         return (
-          <article key={key} className="ledger-panel p-3 shadow-card">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-outline-variant/30 pb-2">
-              <ShiftHighlightChips shifts={{ [key]: shift }} />
-              <StatusChip tone={shiftStatusChipTone(shift.status)}>
-                {formatShiftStatus(shift.status)}
-              </StatusChip>
-            </div>
-            <div className="mt-3 grid gap-3 lg:grid-cols-[1fr_minmax(200px,260px)]">
+          <AccordionSection
+            key={key}
+            accordionId={key}
+            title={shiftLabel}
+            subtitle={amountLabel}
+            trailing={
+              <div className="flex flex-wrap items-center justify-end gap-2">
+                <ShiftHighlightChips shifts={{ [key]: shift }} />
+                <StatusChip tone={shiftStatusChipTone(shift.status)}>
+                  {formatShiftStatus(shift.status)}
+                </StatusChip>
+              </div>
+            }
+            panelClassName="p-3"
+          >
+            <div className="grid gap-3 lg:grid-cols-[1fr_minmax(200px,260px)]">
               <ShiftWorkCommentPanel
                 comment={shift.comment}
                 className="order-1 lg:order-2 lg:sticky lg:top-20 lg:self-start"
@@ -186,18 +202,32 @@ export default function AttendanceRecordDetailPage({ mode, backTo }) {
                       placeholder="Write a reply…"
                       className="min-w-0 flex-1"
                     />
-                    <Button size="sm" variant="secondary" onClick={() => handleReply(shiftKey)}>Reply</Button>
+                    <Button size="sm" variant="secondary" onClick={() => handleReply(shiftKey)}>
+                      Reply
+                    </Button>
                   </div>
                 )}
               </div>
             </div>
-          </article>
+          </AccordionSection>
         );
       })}
 
       {showActivityLog ? (
-        <AttendanceActivityLogSection attendanceId={attendanceId} refreshToken={logRefreshToken} />
+        <AccordionSection
+          accordionId="activity-log"
+          title="Attendance activity log"
+          subtitle="Expand to view verification history"
+          panelClassName="p-0"
+        >
+          <AttendanceActivityLogSection
+            attendanceId={attendanceId}
+            refreshToken={logRefreshToken}
+            embedded
+          />
+        </AccordionSection>
       ) : null}
+      </AccordionGroup>
 
       <VerifyShiftConfirmModal
         open={Boolean(verifyTarget)}
