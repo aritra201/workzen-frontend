@@ -1,6 +1,10 @@
 import { useState } from 'react';
 import Icon from './Icon.jsx';
-import { applyInputFilter, applyPhoneNationalInput } from '../../utils/inputFilters.js';
+import {
+  applyAmountInput,
+  applyInputFilter,
+  applyPhoneNationalInput,
+} from '../../utils/inputFilters.js';
 
 function PasswordVisibilityToggle({ visible, onToggle }) {
   return (
@@ -52,6 +56,17 @@ export default function TextField({
 
     if (inputFilter === 'phone') {
       const { value, message } = applyPhoneNationalInput(event.target.value, phoneCountryCode);
+      setFilterError(message);
+      onChange({
+        ...event,
+        target: { ...event.target, value },
+        currentTarget: { ...event.currentTarget, value },
+      });
+      return;
+    }
+
+    if (inputFilter === 'amount') {
+      const { value, message } = applyAmountInput(event.target.value);
       setFilterError(message);
       onChange({
         ...event,

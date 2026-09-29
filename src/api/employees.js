@@ -50,6 +50,11 @@ export function updateEmployeeStatus(employeeId, body) {
   });
 }
 
+/** Admin patch: `{ isActive }`, `{ dailyAmount }`, or both. */
+export function patchEmployee(employeeId, body) {
+  return updateEmployeeStatus(employeeId, body);
+}
+
 export function getMyEmployeeProfile() {
   return apiRequest('/api/employees/me');
 }

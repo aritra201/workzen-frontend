@@ -1,5 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
-import { inviteEmployee, listEmployees, resendEmployeeInvite, updateEmployeeStatus } from '../../api/employees.js';
+import {
+  inviteEmployee,
+  listEmployees,
+  patchEmployee,
+  resendEmployeeInvite,
+  updateEmployeeStatus,
+} from '../../api/employees.js';
+import { formatCurrencyInr } from '../../utils/format.js';
+import { parseDailyAmountForSubmit } from '../../utils/inputFilters.js';
 import { employeeIdsQueryParam } from '../../utils/employeeIds.js';
 import EmployeeFilterSelect from '../../components/admin/EmployeeFilterSelect.jsx';
 import ListPagination from '../../components/common/ListPagination.jsx';
@@ -35,9 +43,12 @@ export default function AdminEmployeesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [inviteOpen, setInviteOpen] = useState(false);
-  const [form, setForm] = useState({ employeeName: '', employeeEmail: '' });
+  const [form, setForm] = useState({ employeeName: '', employeeEmail: '', dailyAmount: '' });
+  const [inviteAmountError, setInviteAmountError] = useState('');
   const [busy, setBusy] = useState(false);
   const [statusConfirm, setStatusConfirm] = useState(null);
+  const [amountEdit, setAmountEdit] = useState(null);
+  const [amountEditError, setAmountEditError] = useState('');
 
   const load = useCallback(
     async (pageNum = page, selectedIds = filterEmployeeIds) => {
@@ -75,12 +86,54 @@ export default function AdminEmployeesPage() {
   }
 
   async function handleInvite() {
+    const amountCheck = parseDailyAmountForSubmit(form.dailyAmount);
+    if (!amountCheck.ok) {
+      setInviteAmountError(amountCheck.message);
+      return;
+    }
+    setInviteAmountError('');
     setBusy(true);
     setError('');
     try {
-      await inviteEmployee(form);
+      await inviteEmployee({
+        employeeName: form.employeeName.trim(),
+        employeeEmail: form.employeeEmail.trim(),
+        dailyAmount: amountCheck.value,
+      });
       setInviteOpen(false);
-      setForm({ employeeName: '', employeeEmail: '' });
+      setForm({ employeeName: '', employeeEmail: '', dailyAmount: '' });
+      await load(page, filterEmployeeIds);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function openAmountEdit(employee) {
+    setAmountEditError('');
+    setAmountEdit({
+      employee,
+      value:
+        employee.dailyAmount != null && !Number.isNaN(Number(employee.dailyAmount))
+          ? String(employee.dailyAmount)
+          : '',
+    });
+  }
+
+  async function saveAmountEdit() {
+    if (!amountEdit) return;
+    const amountCheck = parseDailyAmountForSubmit(amountEdit.value);
+    if (!amountCheck.ok) {
+      setAmountEditError(amountCheck.message);
+      return;
+    }
+    setAmountEditError('');
+    setBusy(true);
+    setError('');
+    try {
+      await patchEmployee(amountEdit.employee.employeeId, { dailyAmount: amountCheck.value });
+      setAmountEdit(null);
       await load(page, filterEmployeeIds);
     } catch (err) {
       setError(err.message);
@@ -178,10 +231,16 @@ export default function AdminEmployeesPage() {
                     <p className="truncate text-sm text-on-surface-variant">{employee.employeeEmail}</p>
                   </div>
                 </div>
-                <div className="mt-3">
+                <div className="mt-3 flex flex-wrap items-center gap-2">
                   <StatusChip tone={status.tone}>{status.label}</StatusChip>
+                  <span className="text-sm text-on-surface-variant">
+                    Daily: {formatCurrencyInr(employee.dailyAmount)}
+                  </span>
                 </div>
                 <div className="mt-4 flex flex-wrap gap-2">
+                  <Button size="sm" variant="outline" onClick={() => openAmountEdit(employee)}>
+                    Edit daily amount
+                  </Button>
                   {invitationPending ? (
                     <Button size="sm" variant="secondary" onClick={() => handleResend(employee)}>
                       Resend invite
@@ -216,12 +275,13 @@ export default function AdminEmployeesPage() {
       <TableCard
         bordered={false}
         className={`rounded-xl ${loading ? 'opacity-60' : ''}`}
-        minTableWidth="md:min-w-[44rem]"
+        minTableWidth="md:min-w-[52rem]"
       >
           <thead className="bg-surface-container-low text-xs uppercase text-outline">
             <tr>
               <th className="px-4 py-3">Employee</th>
               <th className="px-4 py-3">Email</th>
+              <th className="px-4 py-3">Daily amount</th>
               <th className="px-4 py-3">Status</th>
               <th className="px-4 py-3 text-right">Actions</th>
             </tr>
@@ -247,6 +307,14 @@ export default function AdminEmployeesPage() {
                       </div>
                     </td>
                     <td className="px-4 py-3">{employee.employeeEmail}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span>{formatCurrencyInr(employee.dailyAmount)}</span>
+                        <Button size="sm" variant="ghost" onClick={() => openAmountEdit(employee)}>
+                          Edit
+                        </Button>
+                      </div>
+                    </td>
                     <td className="px-4 py-3">
                       <StatusChip tone={status.tone}>{status.label}</StatusChip>
                     </td>
@@ -311,6 +379,19 @@ export default function AdminEmployeesPage() {
             value={form.employeeEmail}
             onChange={(ev) => setForm({ ...form, employeeEmail: ev.target.value })}
           />
+          <TextField
+            id="emp-daily-amount"
+            label="Daily amount (₹)"
+            value={form.dailyAmount}
+            inputFilter="amount"
+            inputMode="decimal"
+            error={inviteAmountError}
+            hint="Required — wage per day in INR"
+            onChange={(ev) => {
+              setInviteAmountError('');
+              setForm({ ...form, dailyAmount: ev.target.value });
+            }}
+          />
         </div>
         <div className="mt-6">
           <ModalActions
@@ -320,6 +401,42 @@ export default function AdminEmployeesPage() {
             onConfirm={handleInvite}
           />
         </div>
+      </Modal>
+
+      <Modal
+        open={Boolean(amountEdit)}
+        title="Edit daily amount"
+        onClose={() => setAmountEdit(null)}
+        closeOnBackdrop={false}
+      >
+        {amountEdit ? (
+          <>
+            <p className="text-sm text-on-surface-variant">
+              {amountEdit.employee.employeeName} · {amountEdit.employee.employeeEmail}
+            </p>
+            <TextField
+              id="edit-daily-amount"
+              className="mt-4"
+              label="Daily amount (₹)"
+              value={amountEdit.value}
+              inputFilter="amount"
+              inputMode="decimal"
+              error={amountEditError}
+              onChange={(ev) => {
+                setAmountEditError('');
+                setAmountEdit({ ...amountEdit, value: ev.target.value });
+              }}
+            />
+            <div className="mt-6">
+              <ModalActions
+                confirmLabel="Save"
+                loading={busy}
+                onCancel={() => setAmountEdit(null)}
+                onConfirm={saveAmountEdit}
+              />
+            </div>
+          </>
+        ) : null}
       </Modal>
 
       <StatusChangeConfirmModal
