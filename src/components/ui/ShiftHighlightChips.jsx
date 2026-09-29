@@ -4,33 +4,16 @@ import StatusChip from './StatusChip.jsx';
 
 const SHIFT_ORDER = ['day', 'night', 'extraDay', 'extraNight'];
 
-function isShiftShownInAttendanceList(key, shift) {
-  if (!shift) {
-    return false;
-  }
-  if (key === 'extraDay' || key === 'extraNight') {
-    return Boolean(shift.declared && shift.marked);
-  }
-  return Boolean(shift.marked);
+function isShiftShownInAttendanceList(shift) {
+  return Boolean(shift?.marked);
 }
 
-/** @param {{ includeDeclaredExtras?: boolean }} options */
-export function getActiveShiftResponseKeys(shifts, options = {}) {
-  const { includeDeclaredExtras = false } = options;
-  return SHIFT_ORDER.filter((key) => {
-    const shift = shifts?.[key];
-    if (!shift) {
-      return false;
-    }
-    if (includeDeclaredExtras && (key === 'extraDay' || key === 'extraNight')) {
-      return Boolean(shift.declared);
-    }
-    return isShiftShownInAttendanceList(key, shift);
-  });
+export function getActiveShiftResponseKeys(shifts) {
+  return SHIFT_ORDER.filter((key) => isShiftShownInAttendanceList(shifts?.[key]));
 }
 
-export default function ShiftHighlightChips({ shifts, includeDeclaredExtras = false, className = '' }) {
-  const keys = getActiveShiftResponseKeys(shifts, { includeDeclaredExtras });
+export default function ShiftHighlightChips({ shifts, className = '' }) {
+  const keys = getActiveShiftResponseKeys(shifts);
 
   if (!keys.length) {
     return <StatusChip tone="neutral">No shift</StatusChip>;

@@ -7,18 +7,11 @@ export function shiftFromResponse(attendance, shiftKey) {
     return null;
   }
   const data = attendance?.shifts?.[meta.responseKey];
-  if (shiftKey === SHIFT_KEY.DAY || shiftKey === SHIFT_KEY.NIGHT) {
-    return data ?? { marked: false };
-  }
-  return data;
+  return data ?? { marked: false };
 }
 
-export function isShiftVisible(attendance, shiftKey) {
-  if (shiftKey === SHIFT_KEY.DAY || shiftKey === SHIFT_KEY.NIGHT) {
-    return true;
-  }
-  const data = shiftFromResponse(attendance, shiftKey);
-  return Boolean(data?.declared);
+export function isShiftVisible(_attendance, shiftKey) {
+  return Boolean(SHIFT_META[shiftKey]);
 }
 
 export function statusTone(status, lockAttendance) {

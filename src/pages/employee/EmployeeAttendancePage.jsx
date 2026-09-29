@@ -4,7 +4,7 @@ import { getTodayAttendance } from '../../api/attendance.js';
 import { SHIFT_KEY } from '../../constants/shifts.js';
 import { ROUTES } from '../../constants/routes.js';
 import { formatDateLabel } from '../../utils/format.js';
-import { isShiftVisible } from '../../utils/attendanceUi.js';
+import { isShiftVisible, shiftFromResponse } from '../../utils/attendanceUi.js';
 import ShiftAttendanceCard from '../../components/attendance/ShiftAttendanceCard.jsx';
 import { AccordionGroup } from '../../components/ui/AccordionGroup.jsx';
 import ErrorMessage from '../../components/common/ErrorMessage.jsx';
@@ -68,15 +68,7 @@ export default function EmployeeAttendancePage() {
             key={shiftKey}
             accordionId={shiftKey}
             shiftKey={shiftKey}
-            shift={
-              shiftKey === SHIFT_KEY.DAY
-                ? attendance?.shifts?.day ?? { marked: false }
-                : shiftKey === SHIFT_KEY.NIGHT
-                  ? attendance?.shifts?.night ?? { marked: false }
-                  : shiftKey === SHIFT_KEY.EXTRA_DAY
-                    ? attendance?.shifts?.extraDay
-                    : attendance?.shifts?.extraNight
-            }
+            shift={shiftFromResponse(attendance, shiftKey)}
             attendance={attendance}
             onUpdated={load}
           />

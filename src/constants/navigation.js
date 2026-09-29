@@ -5,7 +5,6 @@ export const ADMIN_NAV = [
   { to: ROUTES.admin.attendance, label: 'Attendance', icon: 'how_to_reg' },
   { to: ROUTES.admin.verification, label: 'Verification Queue', icon: 'fact_check', badgeKey: 'verification' },
   { to: ROUTES.admin.unlockRequests, label: 'Unlock Requests', icon: 'lock_open', badgeKey: 'unlock' },
-  { to: ROUTES.admin.extraShifts, label: 'Extra Shifts', icon: 'electric_bolt' },
   { to: ROUTES.admin.employees, label: 'Employees & Labour', icon: 'group' },
   { to: ROUTES.admin.members, label: 'Members', icon: 'security' },
   { to: ROUTES.admin.reports, label: 'Payroll & Reports', icon: 'payments' },

@@ -19,7 +19,6 @@ import AdminDashboardPage from '../pages/admin/AdminDashboardPage.jsx';
 import AdminCompanyPage from '../pages/admin/AdminCompanyPage.jsx';
 import AdminMembersPage from '../pages/admin/AdminMembersPage.jsx';
 import AdminEmployeesPage from '../pages/admin/AdminEmployeesPage.jsx';
-import AdminExtraShiftsPage from '../pages/admin/AdminExtraShiftsPage.jsx';
 import AdminUnlockRequestsPage from '../pages/admin/AdminUnlockRequestsPage.jsx';
 import AdminAttendancePage from '../pages/admin/AdminAttendancePage.jsx';
 import AdminVerificationPage from '../pages/admin/AdminVerificationPage.jsx';
@@ -92,7 +91,7 @@ export default function AppRoutes() {
         <Route path="company" element={<AdminCompanyPage />} />
         <Route path="members" element={<AdminMembersPage />} />
         <Route path="employees" element={<AdminEmployeesPage />} />
-        <Route path="extra-shifts" element={<AdminExtraShiftsPage />} />
+        <Route path="extra-shifts" element={<Navigate to={ROUTES.admin.attendance} replace />} />
         <Route path="unlock-requests" element={<AdminUnlockRequestsPage />} />
         <Route path="attendance" element={<AdminAttendancePage />} />
         <Route path="verification" element={<AdminVerificationPage />} />
