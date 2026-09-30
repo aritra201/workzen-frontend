@@ -199,6 +199,7 @@ export default function ChangePasswordSection({ className = '' }) {
           }
         }}
         closeOnBackdrop={false}
+        preventClose={saving}
       >
         <p className="text-sm text-on-surface-variant">
           Your login password will be updated. Other devices may be signed out and will need the new

@@ -114,7 +114,12 @@ export default function ShiftAttendanceCard({
         }
         headerActions={
           !disabled && !marked ? (
-            <Button size="sm" onClick={() => setConfirmOpen(true)} disabled={busy}>
+            <Button
+              size="sm"
+              onClick={() => setConfirmOpen(true)}
+              disabled={busy}
+              loading={busy && confirmOpen}
+            >
               Confirm
             </Button>
           ) : null
@@ -173,6 +178,7 @@ export default function ShiftAttendanceCard({
                 variant="secondary"
                 onClick={handleSaveComment}
                 disabled={busy || !comment.trim() || !commentDirty}
+                loading={busy && !confirmOpen}
               >
                 Save comment
               </Button>

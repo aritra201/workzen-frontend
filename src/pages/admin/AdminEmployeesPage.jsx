@@ -363,7 +363,13 @@ export default function AdminEmployeesPage() {
         onPageChange={(next) => load(next, filterEmployeeIds)}
       />
 
-      <Modal open={inviteOpen} title="Invite employee" onClose={() => setInviteOpen(false)} closeOnBackdrop={false}>
+      <Modal
+        open={inviteOpen}
+        title="Invite employee"
+        onClose={() => !busy && setInviteOpen(false)}
+        closeOnBackdrop={false}
+        preventClose={busy}
+      >
         <div className="space-y-3">
           <TextField
             id="emp-name"
@@ -397,7 +403,7 @@ export default function AdminEmployeesPage() {
           <ModalActions
             confirmLabel="Send invite"
             loading={busy}
-            onCancel={() => setInviteOpen(false)}
+            onCancel={() => !busy && setInviteOpen(false)}
             onConfirm={handleInvite}
           />
         </div>
@@ -406,8 +412,9 @@ export default function AdminEmployeesPage() {
       <Modal
         open={Boolean(amountEdit)}
         title="Edit daily amount"
-        onClose={() => setAmountEdit(null)}
+        onClose={() => !busy && setAmountEdit(null)}
         closeOnBackdrop={false}
+        preventClose={busy}
       >
         {amountEdit ? (
           <>
@@ -431,7 +438,7 @@ export default function AdminEmployeesPage() {
               <ModalActions
                 confirmLabel="Save"
                 loading={busy}
-                onCancel={() => setAmountEdit(null)}
+                onCancel={() => !busy && setAmountEdit(null)}
                 onConfirm={saveAmountEdit}
               />
             </div>
@@ -445,7 +452,7 @@ export default function AdminEmployeesPage() {
         personLabel={statusConfirm?.employee?.employeeName || statusConfirm?.employee?.employeeEmail}
         nextActive={statusConfirm?.nextActive}
         loading={busy}
-        onCancel={() => setStatusConfirm(null)}
+        onCancel={() => !busy && setStatusConfirm(null)}
         onConfirm={applyStatusChange}
       />
     </div>

@@ -9,7 +9,13 @@ export default function ShiftConfirmModal({
   onConfirm,
 }) {
   return (
-    <Modal open={open} title="Confirm shift?" onClose={onCancel} closeOnBackdrop={false}>
+    <Modal
+      open={open}
+      title="Confirm shift?"
+      onClose={onCancel}
+      closeOnBackdrop={false}
+      preventClose={loading}
+    >
       <p className="text-sm text-on-surface-variant">
         Confirm <strong className="text-on-surface">{shiftLabel || 'this shift'}</strong>
         {dateLabel ? (

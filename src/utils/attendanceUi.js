@@ -31,11 +31,15 @@ export function listMarkAttendanceShiftItems(attendance) {
       accordionId: shiftKey,
     }));
 
-  const half = (attendance?.shifts?.halfShifts ?? []).map((entry) => ({
-    shiftKey: entry.shiftKey,
-    shift: entry,
-    accordionId: entry.shiftKey,
-  }));
+  const half = (attendance?.shifts?.halfShifts ?? []).map((entry) => {
+    const shift =
+      entry?.marked ? entry : { ...entry, status: undefined };
+    return {
+      shiftKey: entry.shiftKey,
+      shift,
+      accordionId: entry.shiftKey,
+    };
+  });
 
   return [...fixed, ...half];
 }

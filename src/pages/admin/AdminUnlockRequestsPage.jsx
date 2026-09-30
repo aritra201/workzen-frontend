@@ -15,6 +15,7 @@ export default function AdminUnlockRequestsPage() {
   const [totalPages, setTotalPages] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [deciding, setDeciding] = useState(null);
 
   const load = useCallback(async (pageNum = page) => {
     setLoading(true);
@@ -43,11 +44,15 @@ export default function AdminUnlockRequestsPage() {
   }, []);
 
   async function decide(row, status) {
+    setDeciding({ id: row.id, status });
+    setError('');
     try {
       await decideUnlockRequest({ attendanceId: row.attendanceId, status });
       await load(page);
     } catch (err) {
       setError(err.message);
+    } finally {
+      setDeciding(null);
     }
   }
 
@@ -81,8 +86,23 @@ export default function AdminUnlockRequestsPage() {
               <StatusChip tone="pending">{r.status}</StatusChip>
             </div>
             <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
-              <Button size="sm" onClick={() => decide(r, 'approved')}>Approve</Button>
-              <Button size="sm" variant="danger" onClick={() => decide(r, 'denied')}>Deny</Button>
+              <Button
+                size="sm"
+                onClick={() => decide(r, 'approved')}
+                loading={deciding?.id === r.id && deciding.status === 'approved'}
+                disabled={Boolean(deciding)}
+              >
+                Approve
+              </Button>
+              <Button
+                size="sm"
+                variant="danger"
+                onClick={() => decide(r, 'denied')}
+                loading={deciding?.id === r.id && deciding.status === 'denied'}
+                disabled={Boolean(deciding)}
+              >
+                Deny
+              </Button>
             </div>
           </article>
         ))}

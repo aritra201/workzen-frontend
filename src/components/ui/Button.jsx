@@ -1,3 +1,5 @@
+import ButtonSpinner from './ButtonSpinner.jsx';
+
 const variants = {
   primary:
     'bg-primary text-on-primary hover:bg-primary-container shadow-md active:scale-[0.99]',
@@ -21,16 +23,21 @@ export default function Button({
   className = '',
   type = 'button',
   disabled,
+  loading = false,
   children,
   ...props
 }) {
+  const isDisabled = Boolean(disabled || loading);
+
   return (
     <button
       type={type}
-      disabled={disabled}
+      disabled={isDisabled}
+      aria-busy={loading || undefined}
       className={`inline-flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:pointer-events-none ${variants[variant]} ${sizes[size]} ${className}`}
       {...props}
     >
+      {loading ? <ButtonSpinner /> : null}
       {children}
     </button>
   );

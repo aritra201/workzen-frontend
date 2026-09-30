@@ -16,7 +16,7 @@ export default function StatusChangeConfirmModal({
   const title = nextActive ? `Activate ${kind}?` : `Deactivate ${kind}?`;
 
   return (
-    <Modal open={open} title={title} onClose={onCancel} closeOnBackdrop={false}>
+    <Modal open={open} title={title} onClose={onCancel} closeOnBackdrop={false} preventClose={loading}>
       <p className="text-sm text-on-surface-variant">
         {nextActive ? (
           <>

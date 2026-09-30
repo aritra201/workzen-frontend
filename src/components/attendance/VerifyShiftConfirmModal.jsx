@@ -11,7 +11,13 @@ export default function VerifyShiftConfirmModal({
   onConfirm,
 }) {
   return (
-    <Modal open={open} title="Verify shift?" onClose={onCancel} closeOnBackdrop={false}>
+    <Modal
+      open={open}
+      title="Verify shift?"
+      onClose={onCancel}
+      closeOnBackdrop={false}
+      preventClose={loading}
+    >
       <p className="text-sm text-on-surface-variant">
         Mark <strong className="text-on-surface">{shiftLabel || 'this shift'}</strong> as verified
         for <strong className="text-on-surface">{employeeName || 'this employee'}</strong>

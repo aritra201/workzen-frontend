@@ -259,7 +259,13 @@ export default function AdminMembersPage() {
         onPageChange={(next) => load(next)}
       />
 
-      <Modal open={inviteOpen} title="Invite member" onClose={() => setInviteOpen(false)} closeOnBackdrop={false}>
+      <Modal
+        open={inviteOpen}
+        title="Invite member"
+        onClose={() => !busy && setInviteOpen(false)}
+        closeOnBackdrop={false}
+        preventClose={busy}
+      >
         <div className="space-y-3">
           <TextField
             id="invite-member-name"
@@ -284,7 +290,7 @@ export default function AdminMembersPage() {
           <ModalActions
             confirmLabel="Send invite"
             loading={busy}
-            onCancel={() => setInviteOpen(false)}
+            onCancel={() => !busy && setInviteOpen(false)}
             onConfirm={handleInvite}
           />
         </div>
@@ -296,7 +302,7 @@ export default function AdminMembersPage() {
         personLabel={statusConfirm?.member?.name || statusConfirm?.member?.email}
         nextActive={statusConfirm?.nextActive}
         loading={busy}
-        onCancel={() => setStatusConfirm(null)}
+        onCancel={() => !busy && setStatusConfirm(null)}
         onConfirm={applyStatusChange}
       />
     </div>
