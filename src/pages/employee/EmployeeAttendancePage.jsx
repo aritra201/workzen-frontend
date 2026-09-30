@@ -1,16 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getTodayAttendance } from '../../api/attendance.js';
-import { SHIFT_KEY } from '../../constants/shifts.js';
 import { ROUTES } from '../../constants/routes.js';
 import { formatDateLabel } from '../../utils/format.js';
-import { isShiftVisible, shiftFromResponse } from '../../utils/attendanceUi.js';
+import { listMarkAttendanceShiftItems } from '../../utils/attendanceUi.js';
 import ShiftAttendanceCard from '../../components/attendance/ShiftAttendanceCard.jsx';
 import { AccordionGroup } from '../../components/ui/AccordionGroup.jsx';
 import ErrorMessage from '../../components/common/ErrorMessage.jsx';
 import LoadingSpinner from '../../components/common/LoadingSpinner.jsx';
-
-const ORDER = [SHIFT_KEY.DAY, SHIFT_KEY.NIGHT, SHIFT_KEY.EXTRA_DAY, SHIFT_KEY.EXTRA_NIGHT];
 
 export default function EmployeeAttendancePage() {
   const [attendance, setAttendance] = useState(null);
@@ -36,7 +33,7 @@ export default function EmployeeAttendancePage() {
 
   if (loading && !attendance) return <LoadingSpinner />;
 
-  const visibleShiftKeys = ORDER.filter((key) => isShiftVisible(attendance, key));
+  const shiftItems = listMarkAttendanceShiftItems(attendance);
 
   return (
     <div className="space-y-6">
@@ -62,13 +59,13 @@ export default function EmployeeAttendancePage() {
 
       <ErrorMessage message={error} />
 
-      <AccordionGroup defaultOpenId={visibleShiftKeys[0] ?? null}>
-        {visibleShiftKeys.map((shiftKey) => (
+      <AccordionGroup defaultOpenId={shiftItems[0]?.accordionId ?? null}>
+        {shiftItems.map(({ shiftKey, shift, accordionId }) => (
           <ShiftAttendanceCard
-            key={shiftKey}
-            accordionId={shiftKey}
+            key={accordionId}
+            accordionId={accordionId}
             shiftKey={shiftKey}
-            shift={shiftFromResponse(attendance, shiftKey)}
+            shift={shift}
             attendance={attendance}
             onUpdated={load}
           />

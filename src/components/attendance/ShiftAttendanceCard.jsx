@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { confirmShift, updateShiftDetails } from '../../api/attendance.js';
 import { SHIFT_META } from '../../constants/shifts.js';
+import { getShiftDisplayMeta, isHalfShiftKey } from '../../utils/halfShifts.js';
 import { formatCurrencyInr, formatDateLabel } from '../../utils/format.js';
 import { getSubmitGeoLocation } from '../../utils/geolocation.js';
 import {
@@ -26,7 +27,7 @@ export default function ShiftAttendanceCard({
   readOnly,
   accordionId,
 }) {
-  const meta = SHIFT_META[shiftKey];
+  const meta = SHIFT_META[shiftKey] ?? getShiftDisplayMeta(shiftKey);
   const [comment, setComment] = useState(shift?.comment ?? '');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -129,7 +130,9 @@ export default function ShiftAttendanceCard({
         ) : (
           <div className="space-y-3">
             <div className="rounded-lg bg-surface-container-low p-3">
-              <p className="text-xs font-medium text-on-surface-variant">Shift amount (from profile)</p>
+              <p className="text-xs font-medium text-on-surface-variant">
+                {isHalfShiftKey(shiftKey) ? 'Half shift amount (from profile)' : 'Shift amount (from profile)'}
+              </p>
               <p className="mt-1 text-lg font-bold tabular-nums text-on-surface">
                 {hasShiftAmount ? formatCurrencyInr(shift.amount) : '—'}
               </p>

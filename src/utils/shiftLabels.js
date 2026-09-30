@@ -1,4 +1,5 @@
 import { SHIFT_KEY, SHIFT_META, SHIFT_STATUS } from '../constants/shifts.js';
+import { getShiftDisplayMeta, parseHalfShiftSlot } from './halfShifts.js';
 
 const RESPONSE_KEY_TO_SHIFT_KEY = {
   day: SHIFT_KEY.DAY,
@@ -8,7 +9,15 @@ const RESPONSE_KEY_TO_SHIFT_KEY = {
 };
 
 export function formatShiftResponseKey(responseKey) {
+  const halfSlot = parseHalfShiftSlot(responseKey);
+  if (halfSlot) {
+    return getShiftDisplayMeta(responseKey)?.short ?? responseKey;
+  }
   const shiftKey = RESPONSE_KEY_TO_SHIFT_KEY[responseKey] ?? responseKey;
+  const halfMeta = getShiftDisplayMeta(shiftKey);
+  if (halfMeta?.short) {
+    return halfMeta.short;
+  }
   const meta = SHIFT_META[shiftKey];
   if (meta?.short) {
     return meta.short;
@@ -61,5 +70,8 @@ export function shiftStatusChipTone(status) {
 }
 
 export function responseKeyToApiShiftKey(responseKey) {
+  if (parseHalfShiftSlot(responseKey)) {
+    return responseKey;
+  }
   return RESPONSE_KEY_TO_SHIFT_KEY[responseKey] ?? responseKey;
 }

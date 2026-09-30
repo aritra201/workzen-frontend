@@ -9,6 +9,7 @@ import {
   responseKeyToApiShiftKey,
   shiftStatusChipTone,
 } from '../../utils/shiftLabels.js';
+import { halfShiftLabel, parseHalfShiftSlot } from '../../utils/halfShifts.js';
 import VerifyShiftConfirmModal from '../../components/attendance/VerifyShiftConfirmModal.jsx';
 import Button from '../../components/ui/Button.jsx';
 import TextField from '../../components/ui/TextField.jsx';
@@ -120,7 +121,13 @@ export default function AttendanceRecordDetailPage({ mode, backTo }) {
 
   const shifts = record.shifts || {};
   const employeeName = getRecordEmployeeName(record);
-  const shiftEntries = Object.entries(shifts).filter(([, shift]) => Boolean(shift));
+  const shiftEntries = Object.entries(shifts)
+    .filter(([key, shift]) => key !== 'halfShifts' && Boolean(shift))
+    .concat(
+      (shifts.halfShifts || [])
+        .filter((h) => h?.marked)
+        .map((h) => [h.shiftKey, h])
+    );
   const defaultAccordionId = shiftEntries[0]?.[0] ?? null;
 
   return (
@@ -154,7 +161,8 @@ export default function AttendanceRecordDetailPage({ mode, backTo }) {
       <AccordionGroup defaultOpenId={defaultAccordionId}>
       {shiftEntries.map(([key, shift]) => {
         const shiftKey = responseKeyToApiShiftKey(key);
-        const shiftLabel = formatShiftResponseKey(key);
+        const halfSlot = parseHalfShiftSlot(key);
+        const shiftLabel = halfSlot ? halfShiftLabel(halfSlot) : formatShiftResponseKey(key);
         const amountLabel =
           shift.amount != null ? formatCurrencyInr(shift.amount) : 'No amount';
 

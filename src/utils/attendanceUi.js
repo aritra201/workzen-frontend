@@ -1,5 +1,6 @@
 import { SHIFT_KEY, SHIFT_META, SHIFT_STATUS } from '../constants/shifts.js';
 import { shiftStatusChipTone } from './shiftLabels.js';
+import { isHalfShiftKey } from './halfShifts.js';
 
 export function shiftFromResponse(attendance, shiftKey) {
   const meta = SHIFT_META[shiftKey];
@@ -11,7 +12,32 @@ export function shiftFromResponse(attendance, shiftKey) {
 }
 
 export function isShiftVisible(_attendance, shiftKey) {
-  return Boolean(SHIFT_META[shiftKey]);
+  return Boolean(SHIFT_META[shiftKey]) || isHalfShiftKey(shiftKey);
+}
+
+/** Cards shown on Mark attendance (fixed shifts + dynamic half shift slots). */
+export function listMarkAttendanceShiftItems(attendance) {
+  const fixedOrder = [
+    SHIFT_KEY.DAY,
+    SHIFT_KEY.NIGHT,
+    SHIFT_KEY.EXTRA_DAY,
+    SHIFT_KEY.EXTRA_NIGHT,
+  ];
+  const fixed = fixedOrder
+    .filter((key) => isShiftVisible(attendance, key))
+    .map((shiftKey) => ({
+      shiftKey,
+      shift: shiftFromResponse(attendance, shiftKey),
+      accordionId: shiftKey,
+    }));
+
+  const half = (attendance?.shifts?.halfShifts ?? []).map((entry) => ({
+    shiftKey: entry.shiftKey,
+    shift: entry,
+    accordionId: entry.shiftKey,
+  }));
+
+  return [...fixed, ...half];
 }
 
 export function statusTone(status, lockAttendance) {
