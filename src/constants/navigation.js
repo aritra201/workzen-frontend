@@ -23,6 +23,7 @@ export const EMPLOYEE_NAV = [
   { to: ROUTES.employee.dashboard, label: 'Dashboard', icon: 'dashboard', end: true },
   { to: ROUTES.employee.attendance, label: 'Mark attendance', icon: 'how_to_reg', end: true },
   { to: ROUTES.employee.attendanceHistory, label: 'Attendance history', icon: 'calendar_month' },
+  { to: ROUTES.employee.payroll, label: 'My payroll report', icon: 'payments' },
   { to: ROUTES.employee.unlockRequests, label: 'Unlock requests', icon: 'lock_open' },
   { to: ROUTES.employee.profile, label: 'My profile', icon: 'person', end: true },
 ];

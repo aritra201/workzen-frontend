@@ -30,6 +30,7 @@ import MemberReportsPage from '../pages/member/MemberReportsPage.jsx';
 import EmployeeDashboardPage from '../pages/employee/EmployeeDashboardPage.jsx';
 import EmployeeAttendancePage from '../pages/employee/EmployeeAttendancePage.jsx';
 import EmployeeAttendanceHistoryPage from '../pages/employee/EmployeeAttendanceHistoryPage.jsx';
+import EmployeePayrollPage from '../pages/employee/EmployeePayrollPage.jsx';
 import EmployeeUnlockRequestsPage from '../pages/employee/EmployeeUnlockRequestsPage.jsx';
 import EmployeeProfilePage from '../pages/employee/EmployeeProfilePage.jsx';
 import AttendanceRecordDetailPage from '../pages/shared/AttendanceRecordDetailPage.jsx';
@@ -138,6 +139,7 @@ export default function AppRoutes() {
         <Route path="dashboard" element={<EmployeeDashboardPage />} />
         <Route path="attendance" element={<EmployeeAttendancePage />} />
         <Route path="attendance/history" element={<EmployeeAttendanceHistoryPage />} />
+        <Route path="payroll" element={<EmployeePayrollPage />} />
         <Route path="attendance/record" element={<AttendanceRecordDetailPage mode="employee" backTo={ROUTES.employee.attendanceHistory} />} />
         <Route path="unlock-requests" element={<EmployeeUnlockRequestsPage />} />
         <Route path="profile" element={<EmployeeProfilePage />} />

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { listPayroll } from '../../api/payroll.js';
+import { listMyPayroll, listPayroll } from '../../api/payroll.js';
 import {
   getAttendanceEmployeeName,
   getAttendanceEmployeeProfilePicture,
@@ -8,6 +8,7 @@ import {
 import { listRangeLastDays } from '../../utils/myAttendanceList.js';
 import { employeeIdsQueryParam } from '../../utils/employeeIds.js';
 import { formatCurrencyInr, formatDateLabel } from '../../utils/format.js';
+import AttendanceDateRangeFilter from '../../components/attendance/AttendanceDateRangeFilter.jsx';
 import CompanyAttendanceFilters from '../../components/attendance/CompanyAttendanceFilters.jsx';
 import PayrollShiftAmountList from '../../components/payroll/PayrollShiftAmountList.jsx';
 import ListPagination from '../../components/common/ListPagination.jsx';
@@ -20,7 +21,12 @@ import { MobileListCard, MobileListStack } from '../../components/common/MobileL
 const DEFAULT_RANGE_DAYS = 30;
 const PAGE_SIZE = 20;
 
-export default function CompanyPayrollPage({ title, detailBasePath, readOnly }) {
+export default function CompanyPayrollPage({
+  title,
+  detailBasePath,
+  readOnly,
+  employeeScope = false,
+}) {
   const initialRange = listRangeLastDays(DEFAULT_RANGE_DAYS);
   const [startDate, setStartDate] = useState(initialRange.startDate);
   const [endDate, setEndDate] = useState(initialRange.endDate);
@@ -44,11 +50,13 @@ export default function CompanyPayrollPage({ title, detailBasePath, readOnly }) 
           limit: PAGE_SIZE,
           page: pageNum,
         };
-        const employeeIdParam = employeeIdsQueryParam(employees);
-        if (employeeIdParam) {
-          params.employeeId = employeeIdParam;
+        if (!employeeScope) {
+          const employeeIdParam = employeeIdsQueryParam(employees);
+          if (employeeIdParam) {
+            params.employeeId = employeeIdParam;
+          }
         }
-        const data = await listPayroll(params);
+        const data = employeeScope ? await listMyPayroll(params) : await listPayroll(params);
         setRecords(data.items || []);
         setSummary(data.summary || null);
         setTotal(data.total ?? 0);
@@ -64,7 +72,7 @@ export default function CompanyPayrollPage({ title, detailBasePath, readOnly }) 
         setLoading(false);
       }
     },
-    [startDate, endDate, page, employeeIds]
+    [startDate, endDate, page, employeeIds, employeeScope]
   );
 
   useEffect(() => {
@@ -108,22 +116,37 @@ export default function CompanyPayrollPage({ title, detailBasePath, readOnly }) 
       <div>
         <h1 className="text-2xl font-bold">{title}</h1>
         <p className="text-sm text-on-surface-variant">
-          {readOnly ? 'View-only' : 'Payroll'} from confirmed shifts only — default last{' '}
-          {DEFAULT_RANGE_DAYS} days. Filter by date and employee.
+          {employeeScope
+            ? `Your confirmed shifts and amounts — default last ${DEFAULT_RANGE_DAYS} days.`
+            : readOnly
+              ? 'View-only payroll from confirmed shifts — filter by date and employee.'
+              : `Payroll from confirmed shifts only — default last ${DEFAULT_RANGE_DAYS} days. Filter by date and employee.`}
         </p>
       </div>
 
-      <CompanyAttendanceFilters
-        startDate={startDate}
-        endDate={endDate}
-        onStartDateChange={setStartDate}
-        onEndDateChange={setEndDate}
-        employeeIds={employeeIds}
-        onEmployeeIdsChange={setEmployeeIds}
-        onApply={handleApply}
-        onReset={handleReset}
-        loading={loading}
-      />
+      {employeeScope ? (
+        <AttendanceDateRangeFilter
+          startDate={startDate}
+          endDate={endDate}
+          onStartDateChange={setStartDate}
+          onEndDateChange={setEndDate}
+          onApply={handleApply}
+          onReset={handleReset}
+          loading={loading}
+        />
+      ) : (
+        <CompanyAttendanceFilters
+          startDate={startDate}
+          endDate={endDate}
+          onStartDateChange={setStartDate}
+          onEndDateChange={setEndDate}
+          employeeIds={employeeIds}
+          onEmployeeIdsChange={setEmployeeIds}
+          onApply={handleApply}
+          onReset={handleReset}
+          loading={loading}
+        />
+      )}
 
       {summary ? (
         <div className="grid gap-3 sm:grid-cols-3">
@@ -173,18 +196,22 @@ export default function CompanyPayrollPage({ title, detailBasePath, readOnly }) 
             const employeeName = getAttendanceEmployeeName(row);
             return (
               <MobileListCard key={row.attendanceId}>
-                <div className="flex items-center gap-3">
-                  <PersonAvatar
-                    name={employeeName}
-                    email={row.employee?.email}
-                    src={getAttendanceEmployeeProfilePicture(row)}
-                    size={40}
-                  />
-                  <div className="min-w-0">
-                    <p className="truncate font-semibold">{employeeName}</p>
-                    <p className="text-sm text-on-surface-variant">{formatDateLabel(row.date)}</p>
+                {employeeScope ? (
+                  <p className="font-semibold">{formatDateLabel(row.date)}</p>
+                ) : (
+                  <div className="flex items-center gap-3">
+                    <PersonAvatar
+                      name={employeeName}
+                      email={row.employee?.email}
+                      src={getAttendanceEmployeeProfilePicture(row)}
+                      size={40}
+                    />
+                    <div className="min-w-0">
+                      <p className="truncate font-semibold">{employeeName}</p>
+                      <p className="text-sm text-on-surface-variant">{formatDateLabel(row.date)}</p>
+                    </div>
                   </div>
-                </div>
+                )}
                 <div className="mt-3">
                   <PayrollShiftAmountList shifts={row.shifts} />
                 </div>
@@ -211,7 +238,9 @@ export default function CompanyPayrollPage({ title, detailBasePath, readOnly }) 
         >
           <thead className="border-b border-outline-variant/40 bg-surface-container-low">
             <tr>
-              <th className="label-caps px-3 py-2 text-outline">Employee</th>
+              {!employeeScope ? (
+                <th className="label-caps px-3 py-2 text-outline">Employee</th>
+              ) : null}
               <th className="label-caps px-3 py-2 text-outline">Date</th>
               <th className="label-caps px-3 py-2 text-outline md:min-w-[12rem]">Shifts</th>
               <th className="label-caps px-3 py-2 text-outline">Day total</th>
@@ -226,17 +255,19 @@ export default function CompanyPayrollPage({ title, detailBasePath, readOnly }) 
                   key={row.attendanceId}
                   className="border-t border-outline-variant/30 hover:bg-surface-container-high/50"
                 >
-                  <td className="px-3 py-2">
-                    <div className="flex items-center gap-3">
-                      <PersonAvatar
-                        name={employeeName}
-                        email={row.employee?.email}
-                        src={getAttendanceEmployeeProfilePicture(row)}
-                        size={36}
-                      />
-                      <span className="font-medium">{employeeName}</span>
-                    </div>
-                  </td>
+                  {!employeeScope ? (
+                    <td className="px-3 py-2">
+                      <div className="flex items-center gap-3">
+                        <PersonAvatar
+                          name={employeeName}
+                          email={row.employee?.email}
+                          src={getAttendanceEmployeeProfilePicture(row)}
+                          size={36}
+                        />
+                        <span className="font-medium">{employeeName}</span>
+                      </div>
+                    </td>
+                  ) : null}
                   <td className="px-3 py-2">{formatDateLabel(row.date)}</td>
                   <td className="px-3 py-2">
                     <PayrollShiftAmountList shifts={row.shifts} />

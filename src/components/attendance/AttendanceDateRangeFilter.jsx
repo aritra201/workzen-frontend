@@ -7,10 +7,11 @@ export default function AttendanceDateRangeFilter({
   onStartDateChange,
   onEndDateChange,
   onApply,
+  onReset,
   loading,
 }) {
   return (
-    <div className="flex flex-col gap-3 rounded-xl bg-surface-container-lowest p-4 shadow-card sm:flex-row sm:flex-wrap sm:items-end">
+    <div className="flex flex-col gap-3 rounded-xl border border-outline-variant/40 bg-surface-container-lowest p-4 shadow-card sm:flex-row sm:flex-wrap sm:items-end">
       <TextField
         id="attendance-range-start"
         label="From"
@@ -27,9 +28,27 @@ export default function AttendanceDateRangeFilter({
         onChange={(e) => onEndDateChange(e.target.value)}
         className="min-w-0 w-full flex-1 sm:min-w-40"
       />
-      <Button type="button" onClick={onApply} disabled={loading} className="h-12 w-full shrink-0 sm:w-auto">
-        {loading ? 'Loading…' : 'Apply'}
-      </Button>
+      <div className="flex w-full shrink-0 flex-col gap-2 sm:flex-row sm:w-auto">
+        {onReset ? (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onReset}
+            disabled={loading}
+            className="h-12 w-full px-6 sm:w-auto"
+          >
+            Reset
+          </Button>
+        ) : null}
+        <Button
+          type="button"
+          onClick={onApply}
+          disabled={loading}
+          className="h-12 w-full px-8 sm:w-auto"
+        >
+          {loading ? 'Loading…' : 'Apply'}
+        </Button>
+      </div>
     </div>
   );
 }

@@ -37,6 +37,7 @@ export const ROUTES = {
     profile: '/employee/profile',
     attendance: '/employee/attendance',
     attendanceHistory: '/employee/attendance/history',
+    payroll: '/employee/payroll',
     attendanceDetail: '/employee/attendance/record',
     unlockRequests: '/employee/unlock-requests',
   },
