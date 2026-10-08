@@ -9,7 +9,13 @@ export default function ShiftConfirmModal({
   onConfirm,
 }) {
   return (
-    <Modal open={open} title="Confirm shift?" onClose={onCancel} closeOnBackdrop={false}>
+    <Modal
+      open={open}
+      title="Confirm shift?"
+      onClose={onCancel}
+      closeOnBackdrop={false}
+      preventClose={loading}
+    >
       <p className="text-sm text-on-surface-variant">
         Confirm <strong className="text-on-surface">{shiftLabel || 'this shift'}</strong>
         {dateLabel ? (
@@ -21,8 +27,9 @@ export default function ShiftConfirmModal({
         ?
       </p>
       <p className="mt-2 text-xs text-on-surface-variant">
-        After confirming, enter shift amount or work comment (or both), add optional proof photos if
-        you want, then submit for verification. Only confirm if you worked this shift.
+        Your profile daily amount will be applied and this shift will be sent for verification. You
+        can optionally add a work comment or photos afterward. Only confirm if you worked this
+        shift. Location is required when you confirm.
       </p>
       <div className="mt-6">
         <ModalActions

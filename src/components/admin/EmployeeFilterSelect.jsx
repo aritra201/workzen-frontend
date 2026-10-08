@@ -1,5 +1,6 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { listEmployeeDropdownOptions } from '../../api/employees.js';
+import { useAuth } from '../../hooks/useAuth.js';
 import ErrorMessage from '../common/ErrorMessage.jsx';
 import Icon from '../ui/Icon.jsx';
 
@@ -53,11 +54,18 @@ export default function EmployeeFilterSelect({
   const [error, setError] = useState('');
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
+  const { primaryMembership } = useAuth();
+  const companyId = primaryMembership?.companyId;
 
   useEffect(() => {
     let cancelled = false;
+    if (!companyId) {
+      setOptions([]);
+      setLoading(false);
+      return undefined;
+    }
     setLoading(true);
-    listEmployeeDropdownOptions()
+    listEmployeeDropdownOptions(companyId)
       .then((data) => {
         if (!cancelled) {
           setOptions(data.employees || []);
@@ -76,7 +84,7 @@ export default function EmployeeFilterSelect({
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [companyId]);
 
   useEffect(() => {
     function handlePointerDown(event) {
@@ -131,7 +139,7 @@ export default function EmployeeFilterSelect({
   }
 
   return (
-    <div ref={rootRef} className={`relative min-w-[220px] ${className}`}>
+    <div ref={rootRef} className={`relative min-w-0 ${className}`}>
       {label ? (
         <span className="mb-1.5 block text-xs font-medium text-on-surface">{label}</span>
       ) : null}
@@ -163,7 +171,7 @@ export default function EmployeeFilterSelect({
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder={placeholder}
-                className="h-9 w-full bg-transparent text-sm text-on-surface placeholder:text-on-surface-variant/70 focus:outline-none"
+                className="h-9 w-full bg-transparent text-base text-on-surface placeholder:text-on-surface-variant/70 focus:outline-none md:text-sm"
                 autoComplete="off"
               />
             </div>

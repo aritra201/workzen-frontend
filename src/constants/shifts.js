@@ -3,6 +3,10 @@ export const SHIFT_KEY = {
   NIGHT: 'night',
   EXTRA_DAY: 'extra_day',
   EXTRA_NIGHT: 'extra_night',
+  HALF_SHIFT_1: 'half_shift_1',
+  HALF_SHIFT_2: 'half_shift_2',
+  HALF_SHIFT_3: 'half_shift_3',
+  HALF_SHIFT_4: 'half_shift_4',
 };
 
 export const SHIFT_META = {

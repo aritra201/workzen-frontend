@@ -1,3 +1,6 @@
+import { SHIFT_META } from '../constants/shifts.js';
+import { isHalfShiftKey } from './halfShifts.js';
+
 /**
  * Shared shift badge surfaces (list SHIFT column). Status chips reuse the same palette:
  * Day → Verified · Night → Pending verification · Extra Day → Awaiting submission · Extra Night → Awaiting attendance
@@ -11,6 +14,8 @@ export const SHIFT_CHIP_CLASS = {
     'bg-amber-100 text-amber-900 ring-1 ring-amber-200/80 dark:bg-amber-500/15 dark:text-amber-200 dark:ring-amber-500/30',
   extraNight:
     'bg-orange-100 text-orange-900 ring-1 ring-orange-200/80 dark:bg-orange-500/15 dark:text-orange-300 dark:ring-orange-500/30',
+  halfShift:
+    'bg-violet-200 text-violet-950 ring-1 ring-violet-300/90 dark:bg-violet-500/25 dark:text-violet-100 dark:ring-violet-400/40',
 };
 
 export const SHIFT_CHIP_DOT_CLASS = {
@@ -18,7 +23,28 @@ export const SHIFT_CHIP_DOT_CLASS = {
   night: 'bg-blue-700 dark:bg-blue-400',
   extraDay: 'bg-amber-800 dark:bg-amber-400',
   extraNight: 'bg-orange-800 dark:bg-orange-400',
+  halfShift: 'bg-violet-800 dark:bg-violet-300',
 };
+
+/** Maps response/api keys (e.g. half_shift_1, extra_day) to SHIFT_CHIP_CLASS keys. */
+export function resolveShiftChipPaletteKey(responseKey) {
+  if (isHalfShiftKey(responseKey)) {
+    return 'halfShift';
+  }
+  const fromApiKey = SHIFT_META[responseKey]?.responseKey;
+  if (fromApiKey) {
+    return fromApiKey;
+  }
+  return responseKey;
+}
+
+export function shiftChipClassName(responseKey) {
+  const paletteKey = resolveShiftChipPaletteKey(responseKey);
+  return (
+    SHIFT_CHIP_CLASS[paletteKey] ??
+    'bg-surface-container text-on-surface-variant ring-1 ring-outline-variant/40'
+  );
+}
 
 /** StatusChip tone → shift palette key */
 export const STATUS_TONE_SHIFT_KEY = {

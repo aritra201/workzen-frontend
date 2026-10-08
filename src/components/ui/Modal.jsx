@@ -10,6 +10,8 @@ export default function Modal({
   /** When false, clicking the backdrop does not close the dialog. */
   closeOnBackdrop = false,
   showCloseButton = true,
+  /** When true, hides the close control and ignores backdrop close. */
+  preventClose = false,
 }) {
   if (!open) {
     return null;
@@ -20,17 +22,17 @@ export default function Modal({
       <div
         className="absolute inset-0 bg-slate-900/40"
         aria-hidden
-        onClick={closeOnBackdrop ? onClose : undefined}
+        onClick={closeOnBackdrop && !preventClose ? onClose : undefined}
       />
       <div
-        className="relative z-10 w-full max-w-lg rounded-t-2xl bg-surface-container-lowest p-6 shadow-xl sm:rounded-2xl"
+        className="relative z-10 flex max-h-[min(92vh,100dvh)] w-full max-w-lg flex-col overflow-hidden rounded-t-2xl bg-surface-container-lowest p-6 shadow-xl sm:max-h-[90vh] sm:rounded-2xl pb-safe"
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"
       >
         <div className="mb-4 flex items-start justify-between gap-3">
           <h2 id="modal-title" className="text-lg font-semibold text-on-surface">{title}</h2>
-          {showCloseButton && onClose ? (
+          {showCloseButton && onClose && !preventClose ? (
             <button
               type="button"
               onClick={onClose}
@@ -41,8 +43,10 @@ export default function Modal({
             </button>
           ) : null}
         </div>
-        <div>{children}</div>
-        {footer ? <div className="mt-6 flex justify-end gap-2">{footer}</div> : null}
+        <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>
+        {footer ? (
+          <div className="mt-6 flex shrink-0 flex-wrap justify-end gap-2">{footer}</div>
+        ) : null}
       </div>
     </div>
   );
@@ -57,9 +61,11 @@ export function ModalActions({
 }) {
   return (
     <>
-      <Button variant="ghost" onClick={onCancel} disabled={loading}>Cancel</Button>
-      <Button variant={confirmVariant} onClick={onConfirm} disabled={loading}>
-        {loading ? 'Please wait…' : confirmLabel}
+      <Button variant="ghost" onClick={onCancel} disabled={loading}>
+        Cancel
+      </Button>
+      <Button variant={confirmVariant} onClick={onConfirm} loading={loading}>
+        {confirmLabel}
       </Button>
     </>
   );

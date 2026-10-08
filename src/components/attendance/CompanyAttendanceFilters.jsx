@@ -10,6 +10,7 @@ export default function CompanyAttendanceFilters({
   employeeIds,
   onEmployeeIdsChange,
   onApply,
+  onReset,
   loading,
 }) {
   return (
@@ -21,7 +22,7 @@ export default function CompanyAttendanceFilters({
           type="date"
           value={startDate}
           onChange={(e) => onStartDateChange(e.target.value)}
-          className="min-w-40 flex-1"
+          className="min-w-0 w-full flex-1 sm:min-w-40"
         />
         <TextField
           id="attendance-range-end"
@@ -29,7 +30,7 @@ export default function CompanyAttendanceFilters({
           type="date"
           value={endDate}
           onChange={(e) => onEndDateChange(e.target.value)}
-          className="min-w-40 flex-1"
+          className="min-w-0 w-full flex-1 sm:min-w-40"
         />
         <EmployeeFilterSelect
           mode="multiple"
@@ -37,16 +38,29 @@ export default function CompanyAttendanceFilters({
           value={employeeIds}
           onChange={onEmployeeIdsChange}
           disabled={loading}
-          className="min-w-[240px] flex-1 lg:max-w-sm"
+          className="min-w-0 w-full flex-1 lg:max-w-sm"
         />
-        <Button
-          type="button"
-          onClick={onApply}
-          disabled={loading}
-          className="h-12 w-full shrink-0 px-8 lg:w-auto"
-        >
-          {loading ? 'Loading…' : 'Apply'}
-        </Button>
+        <div className="flex w-full shrink-0 flex-col gap-2 sm:flex-row lg:w-auto">
+          {onReset ? (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onReset}
+              disabled={loading}
+              className="h-12 w-full px-6 sm:flex-1 lg:w-auto"
+            >
+              Reset
+            </Button>
+          ) : null}
+          <Button
+            type="button"
+            onClick={onApply}
+            disabled={loading}
+            className="h-12 w-full px-8 sm:flex-1 lg:w-auto"
+          >
+            {loading ? 'Loading…' : 'Apply'}
+          </Button>
+        </div>
       </div>
     </div>
   );

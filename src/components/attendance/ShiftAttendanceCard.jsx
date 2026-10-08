@@ -1,21 +1,22 @@
 import { useEffect, useState } from 'react';
-import { confirmShift, submitShift, updateShiftDetails } from '../../api/attendance.js';
+import { confirmShift, updateShiftDetails } from '../../api/attendance.js';
 import { SHIFT_META } from '../../constants/shifts.js';
+import { getShiftDisplayMeta, isHalfShiftKey } from '../../utils/halfShifts.js';
 import { formatCurrencyInr, formatDateLabel } from '../../utils/format.js';
 import { getSubmitGeoLocation } from '../../utils/geolocation.js';
-import { statusLabel, statusTone } from '../../utils/attendanceUi.js';
+import {
+  isShiftDetailsLockedForEmployee,
+  statusLabel,
+  statusTone,
+} from '../../utils/attendanceUi.js';
+import { SHIFT_STATUS } from '../../constants/shifts.js';
 import ShiftConfirmModal from './ShiftConfirmModal.jsx';
 import EmployeeShiftWorkPictures from './EmployeeShiftWorkPictures.jsx';
 import { getShiftWorkPictureUrls } from './WorkPicturesGallery.jsx';
+import AccordionSection from '../ui/AccordionSection.jsx';
 import Button from '../ui/Button.jsx';
 import StatusChip from '../ui/StatusChip.jsx';
 import TextField from '../ui/TextField.jsx';
-
-function hasSavedShiftSubmit(shift) {
-  const hasAmount = shift?.amount != null && !Number.isNaN(Number(shift.amount));
-  const hasComment = Boolean(String(shift?.comment || '').trim());
-  return hasAmount || hasComment;
-}
 
 export default function ShiftAttendanceCard({
   shiftKey,
@@ -24,38 +25,34 @@ export default function ShiftAttendanceCard({
   attendanceDate,
   onUpdated,
   readOnly,
+  accordionId,
 }) {
-  const meta = SHIFT_META[shiftKey];
-  const [amount, setAmount] = useState(shift?.amount ?? '');
+  const meta = SHIFT_META[shiftKey] ?? getShiftDisplayMeta(shiftKey);
   const [comment, setComment] = useState(shift?.comment ?? '');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   useEffect(() => {
-    setAmount(shift?.amount ?? '');
     setComment(shift?.comment ?? '');
-  }, [shift?.amount, shift?.comment, shiftKey]);
+  }, [shift?.comment, shiftKey]);
 
   const marked = Boolean(shift?.marked);
   const locked = attendance?.lockAttendance || !attendance?.canEdit;
-  const disabled = readOnly || locked;
-
-  const amountValid = amount !== '' && !Number.isNaN(Number(amount)) && Number(amount) > 0;
-  const commentValid = Boolean(comment.trim());
-  const hasSavedSubmit = hasSavedShiftSubmit(shift);
-  const canSubmitFirst = amountValid || commentValid;
+  const detailsLocked = isShiftDetailsLockedForEmployee(shift, attendance);
+  const disabled = readOnly || locked || detailsLocked;
+  const verified = shift?.status === SHIFT_STATUS.VERIFIED;
+  const hasShiftAmount =
+    shift?.amount != null && !Number.isNaN(Number(shift.amount)) && Number(shift.amount) > 0;
   const pictureUrls = getShiftWorkPictureUrls(shift);
+  const savedComment = String(shift?.comment || '').trim();
+  const commentDirty = comment.trim() !== savedComment;
 
-  function submitHint() {
-    if (hasSavedSubmit || disabled) {
-      return null;
-    }
-    if (!amountValid && !commentValid) {
-      return 'Enter shift amount or work comment to submit. Proof photos are optional.';
-    }
-    return 'Ready to submit. You can add the other field later. Photos are optional.';
-  }
+  const headerSubtitle = marked
+    ? hasShiftAmount
+      ? formatCurrencyInr(shift.amount)
+      : 'Marked — amount from profile'
+    : 'Tap to expand · confirm when you worked this shift';
 
   async function run(action) {
     setError('');
@@ -74,7 +71,14 @@ export default function ShiftAttendanceCard({
     setError('');
     setBusy(true);
     try {
-      await confirmShift({ shiftKey, attendanceDate });
+      const geo = await getSubmitGeoLocation();
+      if (!geo) {
+        setError(
+          'Location is required to mark attendance. Allow location when your browser asks, then try again.'
+        );
+        return;
+      }
+      await confirmShift({ geoLocation: geo }, { shiftKey, attendanceDate });
       setConfirmOpen(false);
       await onUpdated();
     } catch (err) {
@@ -84,42 +88,10 @@ export default function ShiftAttendanceCard({
     }
   }
 
-  async function handleSubmit() {
-    setError('');
-    setBusy(true);
-    try {
-      const geo = await getSubmitGeoLocation();
-      if (!geo) {
-        setError(
-          'Location is required to submit. Allow location when your browser asks, then tap Submit shift again.'
-        );
-        return;
-      }
-
-      const body = { geoLocation: geo };
-      if (amountValid) {
-        body.amount = Number(amount);
-      }
-      if (commentValid) {
-        body.comment = comment.trim();
-      }
-
-      await submitShift(body, { shiftKey, attendanceDate });
-      await onUpdated();
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function handlePatch() {
+  async function handleSaveComment() {
     await run(() =>
       updateShiftDetails(
-        {
-          amount: amount === '' ? undefined : Number(amount),
-          comment: comment.trim() || undefined,
-        },
+        { comment: comment.trim() },
         { shiftKey, attendanceDate }
       )
     );
@@ -130,25 +102,92 @@ export default function ShiftAttendanceCard({
   }
 
   return (
-    <article className="rounded-xl bg-surface-container-lowest p-4 shadow-card">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <h3 className="text-base font-semibold">{meta.label}</h3>
-            <StatusChip tone={statusTone(shift?.status, locked)}>
-              {statusLabel(shift?.status, locked)}
-            </StatusChip>
+    <>
+      <AccordionSection
+        accordionId={accordionId}
+        title={meta.label}
+        subtitle={headerSubtitle}
+        trailing={
+          <StatusChip tone={statusTone(shift?.status, locked)}>
+            {statusLabel(shift?.status, locked)}
+          </StatusChip>
+        }
+        headerActions={
+          !disabled && !marked ? (
+            <Button
+              size="sm"
+              onClick={() => setConfirmOpen(true)}
+              disabled={busy}
+              loading={busy && confirmOpen}
+            >
+              Confirm
+            </Button>
+          ) : null
+        }
+        panelClassName="p-4 pt-3"
+      >
+        {!marked ? (
+          <p className="text-sm text-on-surface-variant">
+            Confirm this shift if you worked it. Your daily amount from your profile will be applied
+            automatically and sent for verification. You can add an optional comment or photos
+            after confirming.
+          </p>
+        ) : (
+          <div className="space-y-3">
+            <div className="rounded-lg bg-surface-container-low p-3">
+              <p className="text-xs font-medium text-on-surface-variant">
+                {isHalfShiftKey(shiftKey) ? 'Half shift amount (from profile)' : 'Shift amount (from profile)'}
+              </p>
+              <p className="mt-1 text-lg font-bold tabular-nums text-on-surface">
+                {hasShiftAmount ? formatCurrencyInr(shift.amount) : '—'}
+              </p>
+              <p className="mt-1 text-xs text-on-surface-variant">
+                Set by your company admin. You do not enter this amount per shift.
+              </p>
+            </div>
+
+            <TextField
+              label="Work comment (optional)"
+              id={`comment-${shiftKey}`}
+              value={comment}
+              disabled={disabled}
+              onChange={(e) => setComment(e.target.value)}
+              placeholder="Add notes about work on site"
+              hint={
+                verified
+                  ? 'This shift is verified — comment cannot be changed'
+                  : detailsLocked
+                    ? 'This shift can no longer be edited'
+                    : 'Optional — you can save or update until verification'
+              }
+            />
+
+            <EmployeeShiftWorkPictures
+              pictureUrls={pictureUrls}
+              shiftKey={shiftKey}
+              attendanceDate={attendanceDate}
+              disabled={disabled}
+              busy={busy}
+              onBusyChange={setBusy}
+              onUpdated={onUpdated}
+              onError={setError}
+            />
+
+            {!disabled ? (
+              <Button
+                variant="secondary"
+                onClick={handleSaveComment}
+                disabled={busy || !comment.trim() || !commentDirty}
+                loading={busy && !confirmOpen}
+              >
+                Save comment
+              </Button>
+            ) : null}
           </div>
-          {!marked ? (
-            <p className="mt-1 text-xs text-on-surface-variant">Confirm this shift to begin entry.</p>
-          ) : null}
-        </div>
-        {!disabled && !marked ? (
-          <Button size="sm" onClick={() => setConfirmOpen(true)} disabled={busy}>
-            Confirm
-          </Button>
-        ) : null}
-      </div>
+        )}
+
+        {error ? <p className="mt-3 text-xs text-error">{error}</p> : null}
+      </AccordionSection>
 
       <ShiftConfirmModal
         open={confirmOpen}
@@ -162,71 +201,6 @@ export default function ShiftAttendanceCard({
         }}
         onConfirm={handleConfirm}
       />
-
-      {marked ? (
-        <div className="mt-4 space-y-3">
-          <div className="rounded-lg bg-surface-container-low p-3">
-            <label className="text-xs font-medium text-on-surface-variant">Amount (₹)</label>
-            <input
-              type="number"
-              min="0"
-              step="0.01"
-              disabled={disabled}
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              className="mt-1 w-full rounded-lg bg-surface-container-lowest px-3 py-2 text-lg font-bold tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/40"
-            />
-            {shift?.amount != null ? (
-              <p className="mt-1 text-xs text-on-surface-variant">
-                Saved: {formatCurrencyInr(shift.amount)}
-              </p>
-            ) : null}
-          </div>
-
-          <TextField
-            label="Work comment"
-            id={`comment-${shiftKey}`}
-            value={comment}
-            disabled={disabled}
-            onChange={(e) => setComment(e.target.value)}
-            placeholder="Describe work completed on site"
-          />
-
-          <EmployeeShiftWorkPictures
-            pictureUrls={pictureUrls}
-            shiftKey={shiftKey}
-            attendanceDate={attendanceDate}
-            disabled={disabled}
-            busy={busy}
-            onBusyChange={setBusy}
-            onUpdated={onUpdated}
-            onError={setError}
-          />
-
-          {!disabled ? (
-            <div className="space-y-2">
-              {submitHint() ? (
-                <p className="text-xs text-on-surface-variant">{submitHint()}</p>
-              ) : null}
-              {hasSavedSubmit ? (
-                <Button
-                  variant="secondary"
-                  onClick={handlePatch}
-                  disabled={busy || (!amountValid && !commentValid)}
-                >
-                  Save changes
-                </Button>
-              ) : (
-                <Button onClick={handleSubmit} disabled={busy || !canSubmitFirst}>
-                  Submit shift
-                </Button>
-              )}
-            </div>
-          ) : null}
-        </div>
-      ) : null}
-
-      {error ? <p className="mt-2 text-xs text-error">{error}</p> : null}
-    </article>
+    </>
   );
 }

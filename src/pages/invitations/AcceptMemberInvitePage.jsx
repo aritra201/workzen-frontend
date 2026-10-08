@@ -78,7 +78,12 @@ export default function AcceptMemberInvitePage() {
     <div className="mx-auto w-full max-w-md rounded-xl bg-surface-container-lowest p-8 shadow-md">
       <h1 className="text-2xl font-semibold">Join as member</h1>
       <p className="mt-2 text-sm text-on-surface-variant">
-        <strong>{preview?.companyName || 'Your company'}</strong> invites you.
+        {preview?.memberName ? (
+          <>
+            Hello <strong>{preview.memberName}</strong>,{' '}
+          </>
+        ) : null}
+        <strong>{preview?.companyName || 'Your company'}</strong> invites you as a view-only member.
       </p>
       {preview?.email ? (
         <p className="mt-1 text-xs text-outline">{preview.email}</p>

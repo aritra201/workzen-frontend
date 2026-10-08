@@ -95,9 +95,16 @@ export default function AdminDashboardPage() {
         <h2 className="text-lg font-semibold">Recent pending verifications</h2>
         <ul className="mt-4 divide-y divide-surface-container-high">
           {(stats?.recent || []).map((row) => (
-            <li key={row.attendanceId} className="flex items-center justify-between py-3 text-sm">
-              <span>{getAttendanceEmployeeName(row)} · {row.date}</span>
-              <span className="font-semibold text-on-surface-variant">{shiftVerificationSummary(row.shifts)}</span>
+            <li
+              key={row.attendanceId}
+              className="flex flex-col gap-1 py-3 text-sm sm:flex-row sm:items-center sm:justify-between"
+            >
+              <span className="min-w-0 break-words">
+                {getAttendanceEmployeeName(row)} · {row.date}
+              </span>
+              <span className="shrink-0 font-semibold text-on-surface-variant">
+                {shiftVerificationSummary(row.shifts)}
+              </span>
             </li>
           ))}
           {!stats?.recent?.length ? (

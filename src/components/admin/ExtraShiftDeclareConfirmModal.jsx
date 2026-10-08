@@ -12,7 +12,13 @@ export default function ExtraShiftDeclareConfirmModal({
   const shiftsText = shiftLabels?.length ? shiftLabels.join(' and ') : 'selected shifts';
 
   return (
-    <Modal open={open} title="Confirm extra shift declaration" onClose={onCancel} closeOnBackdrop={false}>
+    <Modal
+      open={open}
+      title="Confirm extra shift declaration"
+      onClose={onCancel}
+      closeOnBackdrop={false}
+      preventClose={loading}
+    >
       <p className="text-sm text-on-surface-variant">
         Declare <strong className="text-on-surface">{shiftsText}</strong> for{' '}
         <strong className="text-on-surface">{employeeName || 'this employee'}</strong> on{' '}

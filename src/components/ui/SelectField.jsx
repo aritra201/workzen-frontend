@@ -14,7 +14,7 @@ export default function SelectField({
       ) : null}
       <select
         id={id}
-        className="h-12 w-full rounded-lg bg-surface-container-low px-3 text-on-surface focus:bg-surface-container-lowest focus:shadow-[0_0_0_2px_#00685f] focus:outline-none"
+        className="h-12 w-full max-w-full rounded-lg bg-surface-container-low px-3 text-base text-on-surface focus:bg-surface-container-lowest focus:shadow-[0_0_0_2px_#00685f] focus:outline-none md:text-sm"
         {...selectProps}
       >
         {children}

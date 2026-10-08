@@ -135,6 +135,7 @@ export default function EmployeeUnlockRequestsPage() {
         title="Request unlock?"
         onClose={() => !submitting && setConfirmRow(null)}
         closeOnBackdrop={false}
+        preventClose={submitting}
       >
         <p className="text-sm text-on-surface-variant">
           Send an unlock request for{' '}
@@ -145,7 +146,7 @@ export default function EmployeeUnlockRequestsPage() {
           <ModalActions
             confirmLabel="Yes, request unlock"
             loading={submitting}
-            onCancel={() => setConfirmRow(null)}
+            onCancel={() => !submitting && setConfirmRow(null)}
             onConfirm={confirmUnlock}
           />
         </div>

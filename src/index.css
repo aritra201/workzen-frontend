@@ -112,19 +112,27 @@
 }
 
 @layer base {
-  html,
-  body {
+  html {
     margin: 0;
     min-height: 100%;
+    width: 100%;
+    overflow-x: hidden;
   }
 
   body {
+    margin: 0;
+    min-height: 100%;
+    width: 100%;
     @apply bg-surface font-sans text-sm text-on-surface antialiased;
     overscroll-behavior: none;
+    overflow-x: hidden;
   }
 
   #root {
     min-height: 100vh;
+    width: 100%;
+    min-width: 0;
+    overflow-x: hidden;
   }
 
   input,
@@ -134,9 +142,46 @@
     font: inherit;
   }
 
+  /* Prevent iOS Safari from zooming focused fields (needs ≥16px) */
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
+
+  @media (min-width: 768px) {
+    input,
+    textarea,
+    select {
+      font-size: inherit;
+    }
+  }
+
+  button,
+  a {
+    touch-action: manipulation;
+  }
+
   .tabular-nums {
     font-variant-numeric: tabular-nums;
     font-feature-settings: 'tnum' 1;
+  }
+
+  /* Hide native date icon only; TextField shows theme-aware calendar_month */
+  .date-field-input::-webkit-calendar-picker-indicator {
+    position: absolute;
+    right: 0.5rem;
+    width: 2.25rem;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .date-field-input::-moz-calendar-picker-indicator {
+    opacity: 0;
+    cursor: pointer;
   }
 }
 
@@ -185,6 +230,29 @@
     font-size: 13px;
     font-weight: 500;
     font-variant-numeric: tabular-nums;
+  }
+
+  .google-signin-host {
+    position: relative;
+    z-index: 1;
+    min-height: 3rem;
+  }
+
+  .google-signin-container {
+    width: 100% !important;
+    min-height: 3rem;
+  }
+
+  .google-signin-container > div {
+    width: 100% !important;
+    display: flex !important;
+    justify-content: center;
+  }
+
+  .google-signin-container iframe {
+    pointer-events: auto !important;
+    max-width: 100% !important;
+    min-height: 3rem !important;
   }
 }
 

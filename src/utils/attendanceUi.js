@@ -1,5 +1,6 @@
 import { SHIFT_KEY, SHIFT_META, SHIFT_STATUS } from '../constants/shifts.js';
 import { shiftStatusChipTone } from './shiftLabels.js';
+import { isHalfShiftKey } from './halfShifts.js';
 
 export function shiftFromResponse(attendance, shiftKey) {
   const meta = SHIFT_META[shiftKey];
@@ -7,18 +8,40 @@ export function shiftFromResponse(attendance, shiftKey) {
     return null;
   }
   const data = attendance?.shifts?.[meta.responseKey];
-  if (shiftKey === SHIFT_KEY.DAY || shiftKey === SHIFT_KEY.NIGHT) {
-    return data ?? { marked: false };
-  }
-  return data;
+  return data ?? { marked: false };
 }
 
-export function isShiftVisible(attendance, shiftKey) {
-  if (shiftKey === SHIFT_KEY.DAY || shiftKey === SHIFT_KEY.NIGHT) {
-    return true;
-  }
-  const data = shiftFromResponse(attendance, shiftKey);
-  return Boolean(data?.declared);
+export function isShiftVisible(_attendance, shiftKey) {
+  return Boolean(SHIFT_META[shiftKey]) || isHalfShiftKey(shiftKey);
+}
+
+/** Cards shown on Mark attendance (fixed shifts + dynamic half shift slots). */
+export function listMarkAttendanceShiftItems(attendance) {
+  const fixedOrder = [
+    SHIFT_KEY.DAY,
+    SHIFT_KEY.NIGHT,
+    SHIFT_KEY.EXTRA_DAY,
+    SHIFT_KEY.EXTRA_NIGHT,
+  ];
+  const fixed = fixedOrder
+    .filter((key) => isShiftVisible(attendance, key))
+    .map((shiftKey) => ({
+      shiftKey,
+      shift: shiftFromResponse(attendance, shiftKey),
+      accordionId: shiftKey,
+    }));
+
+  const half = (attendance?.shifts?.halfShifts ?? []).map((entry) => {
+    const shift =
+      entry?.marked ? entry : { ...entry, status: undefined };
+    return {
+      shiftKey: entry.shiftKey,
+      shift,
+      accordionId: entry.shiftKey,
+    };
+  });
+
+  return [...fixed, ...half];
 }
 
 export function statusTone(status, lockAttendance) {
@@ -29,6 +52,15 @@ export function statusTone(status, lockAttendance) {
     return 'neutral';
   }
   return shiftStatusChipTone(status);
+}
+
+/** Comment and work pictures cannot be changed after verification (or rejection). */
+export function isShiftDetailsLockedForEmployee(shift, attendance) {
+  if (attendance?.lockAttendance || attendance?.canEdit === false) {
+    return true;
+  }
+  const status = shift?.status;
+  return status === SHIFT_STATUS.VERIFIED || status === SHIFT_STATUS.REJECTED;
 }
 
 export function statusLabel(status, lockAttendance) {

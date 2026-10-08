@@ -1,11 +1,12 @@
 import { ROUTES } from '../../constants/routes.js';
 import CompanyPayrollPage from '../shared/CompanyPayrollPage.jsx';
 
-export default function AdminReportsPage() {
+export default function MemberReportsPage() {
   return (
     <CompanyPayrollPage
-      title="Payroll & reports"
-      detailBasePath={ROUTES.admin.attendanceDetail}
+      title="Payroll & reports (read-only)"
+      detailBasePath={ROUTES.member.attendanceDetail}
+      readOnly
     />
   );
 }

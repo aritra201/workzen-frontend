@@ -9,10 +9,15 @@ import StatusChangeConfirmModal from '../../components/admin/StatusChangeConfirm
 import ErrorMessage from '../../components/common/ErrorMessage.jsx';
 import LoadingSpinner from '../../components/common/LoadingSpinner.jsx';
 import StatusChip from '../../components/ui/StatusChip.jsx';
+import TableCard from '../../components/common/TableCard.jsx';
+import { MobileListCard, MobileListStack } from '../../components/common/MobileList.jsx';
 
 const PAGE_SIZE = 20;
 
 function memberStatus(member) {
+  if (!member.userId) {
+    return { label: 'Invitation pending', tone: 'pending' };
+  }
   if (member.isActive) {
     return { label: 'Active', tone: 'verified' };
   }
@@ -27,7 +32,7 @@ export default function AdminMembersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [inviteOpen, setInviteOpen] = useState(false);
-  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteForm, setInviteForm] = useState({ memberName: '', email: '' });
   const [busy, setBusy] = useState(false);
   const [statusConfirm, setStatusConfirm] = useState(null);
 
@@ -57,9 +62,12 @@ export default function AdminMembersPage() {
     setBusy(true);
     setError('');
     try {
-      await inviteMember({ email: inviteEmail });
+      await inviteMember({
+        memberName: inviteForm.memberName.trim(),
+        email: inviteForm.email.trim(),
+      });
       setInviteOpen(false);
-      setInviteEmail('');
+      setInviteForm({ memberName: '', email: '' });
       await load(page);
     } catch (err) {
       setError(err.message);
@@ -113,8 +121,71 @@ export default function AdminMembersPage() {
         {total === 0 ? 'No members yet.' : `Showing ${rangeStart}–${rangeEnd} of ${total}`}
       </p>
 
-      <div className={`overflow-hidden rounded-xl bg-surface-container-lowest shadow-card ${loading ? 'opacity-60' : ''}`}>
-        <table className="w-full text-left text-sm">
+      {members.length === 0 ? (
+        <p className="rounded-xl bg-surface-container-lowest px-4 py-10 text-center text-on-surface-variant shadow-card">
+          No members to show.
+        </p>
+      ) : (
+        <MobileListStack className={loading ? 'opacity-60' : ''}>
+          {members.map((member) => {
+            const status = memberStatus(member);
+            const invitationPending = !member.userId;
+            const canDeactivate = member.userId && member.isActive;
+            const canActivate = member.userId && !member.isActive;
+            return (
+              <MobileListCard key={member.id}>
+                <div className="flex items-center gap-3">
+                  <PersonAvatar
+                    name={member.name}
+                    email={member.email}
+                    src={member.profilePicture}
+                    size={44}
+                  />
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold">{member.name || '—'}</p>
+                    <p className="truncate text-sm text-on-surface-variant">{member.email}</p>
+                  </div>
+                </div>
+                <div className="mt-3">
+                  <StatusChip tone={status.tone}>{status.label}</StatusChip>
+                </div>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {invitationPending ? (
+                    <Button size="sm" variant="secondary" onClick={() => handleResend(member)}>
+                      Resend invite
+                    </Button>
+                  ) : null}
+                  {canDeactivate ? (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setStatusConfirm({ member, nextActive: false })}
+                    >
+                      Deactivate
+                    </Button>
+                  ) : null}
+                  {canActivate ? (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setStatusConfirm({ member, nextActive: true })}
+                    >
+                      Activate
+                    </Button>
+                  ) : null}
+                </div>
+              </MobileListCard>
+            );
+          })}
+        </MobileListStack>
+      )}
+
+      {members.length > 0 ? (
+      <TableCard
+        bordered={false}
+        className={`rounded-xl ${loading ? 'opacity-60' : ''}`}
+        minTableWidth="md:min-w-[44rem]"
+      >
           <thead className="bg-surface-container-low text-xs uppercase text-outline">
             <tr>
               <th className="px-4 py-3">Member</th>
@@ -124,16 +195,11 @@ export default function AdminMembersPage() {
             </tr>
           </thead>
           <tbody>
-            {members.length === 0 ? (
-              <tr>
-                <td colSpan={4} className="px-4 py-10 text-center text-on-surface-variant">
-                  No members to show.
-                </td>
-              </tr>
-            ) : (
-              members.map((member) => {
+              {members.map((member) => {
                 const status = memberStatus(member);
-                const showResend = !member.isActive;
+                const invitationPending = !member.userId;
+                const canDeactivate = member.userId && member.isActive;
+                const canActivate = member.userId && !member.isActive;
 
                 return (
                   <tr key={member.id} className="border-t border-surface-container-high">
@@ -153,28 +219,36 @@ export default function AdminMembersPage() {
                       <StatusChip tone={status.tone}>{status.label}</StatusChip>
                     </td>
                     <td className="px-4 py-3 text-right space-x-2">
-                      {showResend ? (
+                      {invitationPending ? (
                         <Button size="sm" variant="secondary" onClick={() => handleResend(member)}>
                           Resend invite
                         </Button>
                       ) : null}
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() =>
-                          setStatusConfirm({ member, nextActive: !member.isActive })
-                        }
-                      >
-                        {member.isActive ? 'Deactivate' : 'Activate'}
-                      </Button>
+                      {canDeactivate ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setStatusConfirm({ member, nextActive: false })}
+                        >
+                          Deactivate
+                        </Button>
+                      ) : null}
+                      {canActivate ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setStatusConfirm({ member, nextActive: true })}
+                        >
+                          Activate
+                        </Button>
+                      ) : null}
                     </td>
                   </tr>
                 );
-              })
-            )}
+              })}
           </tbody>
-        </table>
-      </div>
+      </TableCard>
+      ) : null}
 
       <ListPagination
         page={page}
@@ -185,19 +259,38 @@ export default function AdminMembersPage() {
         onPageChange={(next) => load(next)}
       />
 
-      <Modal open={inviteOpen} title="Invite member" onClose={() => setInviteOpen(false)} closeOnBackdrop={false}>
-        <TextField
-          id="invite-email"
-          label="Email"
-          type="email"
-          value={inviteEmail}
-          onChange={(e) => setInviteEmail(e.target.value)}
-        />
+      <Modal
+        open={inviteOpen}
+        title="Invite member"
+        onClose={() => !busy && setInviteOpen(false)}
+        closeOnBackdrop={false}
+        preventClose={busy}
+      >
+        <div className="space-y-3">
+          <TextField
+            id="invite-member-name"
+            label="Name"
+            icon="person"
+            value={inviteForm.memberName}
+            inputFilter="alphabetic"
+            onChange={(e) => setInviteForm({ ...inviteForm, memberName: e.target.value })}
+            required
+          />
+          <TextField
+            id="invite-email"
+            label="Email"
+            type="email"
+            icon="alternate_email"
+            value={inviteForm.email}
+            onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })}
+            required
+          />
+        </div>
         <div className="mt-6">
           <ModalActions
             confirmLabel="Send invite"
             loading={busy}
-            onCancel={() => setInviteOpen(false)}
+            onCancel={() => !busy && setInviteOpen(false)}
             onConfirm={handleInvite}
           />
         </div>
@@ -206,10 +299,10 @@ export default function AdminMembersPage() {
       <StatusChangeConfirmModal
         open={Boolean(statusConfirm)}
         kind="member"
-        personLabel={statusConfirm?.member?.email}
+        personLabel={statusConfirm?.member?.name || statusConfirm?.member?.email}
         nextActive={statusConfirm?.nextActive}
         loading={busy}
-        onCancel={() => setStatusConfirm(null)}
+        onCancel={() => !busy && setStatusConfirm(null)}
         onConfirm={applyStatusChange}
       />
     </div>

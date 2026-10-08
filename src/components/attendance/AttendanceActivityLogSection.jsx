@@ -105,7 +105,11 @@ function ActivityLogDetailBody({ log }) {
   );
 }
 
-export default function AttendanceActivityLogSection({ attendanceId, refreshToken }) {
+export default function AttendanceActivityLogSection({
+  attendanceId,
+  refreshToken,
+  embedded = false,
+}) {
   const [logs, setLogs] = useState([]);
   const [listLoading, setListLoading] = useState(true);
   const [listError, setListError] = useState('');
@@ -171,35 +175,47 @@ export default function AttendanceActivityLogSection({ attendanceId, refreshToke
     setDetailError('');
   }
 
+  const shellClass = embedded
+    ? 'p-4 sm:p-5'
+    : 'rounded-xl bg-surface-container-lowest p-4 shadow-card sm:p-5';
+
   return (
-    <section className="rounded-xl bg-surface-container-lowest p-4 shadow-card sm:p-5">
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
-            <Icon name="history" size={20} />
-          </span>
-          <div>
-            <h3 className="font-semibold text-on-surface">Attendance activity log</h3>
-            <p className="text-xs text-on-surface-variant">
-              {listLoading ? 'Loading…' : `${logs.length} event${logs.length === 1 ? '' : 's'}`}
-            </p>
+    <section className={shellClass}>
+      {!embedded ? (
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <Icon name="history" size={20} />
+            </span>
+            <div>
+              <h3 className="font-semibold text-on-surface">Attendance activity log</h3>
+              <p className="text-xs text-on-surface-variant">
+                {listLoading ? 'Loading…' : `${logs.length} event${logs.length === 1 ? '' : 's'}`}
+              </p>
+            </div>
           </div>
         </div>
-      </div>
+      ) : (
+        <p className="mb-3 text-xs text-on-surface-variant">
+          {listLoading ? 'Loading…' : `${logs.length} event${logs.length === 1 ? '' : 's'}`}
+        </p>
+      )}
 
       {listError ? (
-        <p className="mt-4 text-sm text-error">{listError}</p>
+        <p className={`text-sm text-error ${embedded ? '' : 'mt-4'}`}>{listError}</p>
       ) : null}
 
       {listLoading ? (
-        <div className="mt-6 py-8">
+        <div className={`py-8 ${embedded ? '' : 'mt-6'}`}>
           <LoadingSpinner label="Loading activity log…" />
         </div>
       ) : !logs.length ? (
-        <p className="mt-4 text-sm text-on-surface-variant">No activity entries for this attendance yet.</p>
+        <p className={`text-sm text-on-surface-variant ${embedded ? '' : 'mt-4'}`}>
+          No activity entries for this attendance yet.
+        </p>
       ) : (
         <div
-          className="mt-4 max-h-[min(28rem,55vh)] overflow-y-auto overscroll-y-contain rounded-lg border border-outline-variant/30 bg-surface-container-lowest/50"
+          className={`max-h-[min(28rem,55vh)] overflow-y-auto overscroll-y-contain rounded-lg border border-outline-variant/30 bg-surface-container-lowest/50 ${embedded ? '' : 'mt-4'}`}
           aria-label="Activity log entries"
         >
           <ul className="divide-y divide-surface-container-high">

@@ -14,6 +14,12 @@ import CountryNameCombobox from '../../components/ui/CountryNameCombobox.jsx';
 import PersonAvatar from '../../components/ui/PersonAvatar.jsx';
 import ErrorMessage from '../../components/common/ErrorMessage.jsx';
 import LoadingSpinner from '../../components/common/LoadingSpinner.jsx';
+import ChangePasswordSection from '../../components/auth/ChangePasswordSection.jsx';
+import {
+  nationalPhoneHint,
+  trimPhoneToCountryLimit,
+  validateNationalPhone,
+} from '../../utils/inputFilters.js';
 
 const EMPTY_FORM = {
   employeeName: '',
@@ -56,6 +62,7 @@ export default function EmployeeProfilePage() {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [phoneError, setPhoneError] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -92,7 +99,9 @@ export default function EmployeeProfilePage() {
       ...prev,
       countryCode: option.dialCode,
       country: option.countryName,
+      phoneNumber: trimPhoneToCountryLimit(prev.phoneNumber, option.dialCode),
     }));
+    setPhoneError('');
   }
 
   function handleCountrySelect(option) {
@@ -100,11 +109,19 @@ export default function EmployeeProfilePage() {
       ...prev,
       country: option.countryName,
       countryCode: option.dialCode,
+      phoneNumber: trimPhoneToCountryLimit(prev.phoneNumber, option.dialCode),
     }));
+    setPhoneError('');
   }
 
   async function handleSave(event) {
     event.preventDefault();
+    const phoneCheck = validateNationalPhone(form.phoneNumber, form.countryCode);
+    if (!phoneCheck.ok) {
+      setPhoneError(phoneCheck.message);
+      return;
+    }
+    setPhoneError('');
     const wasMissingName = !profile?.employeeName?.trim();
     setSaving(true);
     setError('');
@@ -195,6 +212,7 @@ export default function EmployeeProfilePage() {
           id="employeeName"
           label="Display name"
           value={form.employeeName}
+          inputFilter="alphabetic"
           onChange={(e) => updateField('employeeName', e.target.value)}
           required
         />
@@ -220,8 +238,15 @@ export default function EmployeeProfilePage() {
             label="Phone number"
             type="tel"
             value={form.phoneNumber}
-            onChange={(e) => updateField('phoneNumber', e.target.value)}
-            hint="National number without country code"
+            inputFilter="phone"
+            phoneCountryCode={form.countryCode}
+            inputMode="numeric"
+            error={phoneError}
+            onChange={(e) => {
+              setPhoneError('');
+              updateField('phoneNumber', e.target.value);
+            }}
+            hint={nationalPhoneHint(form.countryCode)}
           />
         </div>
 
@@ -237,6 +262,7 @@ export default function EmployeeProfilePage() {
             id="state"
             label="State"
             value={form.state}
+            inputFilter="alphabetic"
             onChange={(e) => updateField('state', e.target.value)}
           />
         </div>
@@ -245,6 +271,8 @@ export default function EmployeeProfilePage() {
           id="pinCode"
           label="PIN / postal code"
           value={form.pinCode}
+          inputFilter="numeric"
+          inputMode="numeric"
           onChange={(e) => updateField('pinCode', e.target.value)}
         />
         <TextField
@@ -258,6 +286,8 @@ export default function EmployeeProfilePage() {
           {saving ? 'Saving…' : 'Save profile'}
         </Button>
       </form>
+
+      <ChangePasswordSection />
     </div>
   );
 }

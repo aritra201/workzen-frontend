@@ -16,7 +16,6 @@ export default function LoginPage() {
   const { loginWithTokens } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -109,22 +108,12 @@ export default function LoginPage() {
               </div>
               <TextField
                 id="login-password"
-                type={showPassword ? 'text' : 'password'}
+                type="password"
                 icon="lock"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 autoComplete="current-password"
-                suffix={
-                  <button
-                    type="button"
-                    className="absolute right-3 top-1/2 z-[2] -translate-y-1/2 rounded p-1 text-on-surface-variant hover:text-on-surface"
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
-                    onClick={() => setShowPassword((v) => !v)}
-                  >
-                    <Icon name={showPassword ? 'visibility' : 'visibility_off'} size={20} />
-                  </button>
-                }
               />
             </div>
             <Button type="submit" className="w-full" disabled={submitting}>

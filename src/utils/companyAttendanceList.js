@@ -45,7 +45,7 @@ export function sumShiftAmounts(shifts) {
 export function shiftsCountedForAttendanceStatus(shifts) {
   const counted = {};
   for (const [key, shift] of Object.entries(shifts || {})) {
-    if (!shift) {
+    if (!shift || key === 'halfShifts') {
       continue;
     }
     if (key === 'extraDay' || key === 'extraNight') {
@@ -56,6 +56,11 @@ export function shiftsCountedForAttendanceStatus(shifts) {
     }
     if (shift.marked) {
       counted[key] = shift;
+    }
+  }
+  for (const half of shifts?.halfShifts || []) {
+    if (half?.marked && half.shiftKey) {
+      counted[half.shiftKey] = half;
     }
   }
   return counted;
