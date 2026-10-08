@@ -4,7 +4,7 @@ import CompanyAttendanceListPage from '../shared/CompanyAttendanceListPage.jsx';
 export default function MemberAttendancePage() {
   return (
     <CompanyAttendanceListPage
-      title="Attendance (read-only)"
+      title="Employee Attendance List"
       detailBasePath={ROUTES.member.attendanceDetail}
       readOnly
     />

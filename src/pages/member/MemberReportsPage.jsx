@@ -4,7 +4,7 @@ import CompanyPayrollPage from '../shared/CompanyPayrollPage.jsx';
 export default function MemberReportsPage() {
   return (
     <CompanyPayrollPage
-      title="Payroll & reports (read-only)"
+      title="Payroll & reports"
       detailBasePath={ROUTES.member.attendanceDetail}
       readOnly
     />

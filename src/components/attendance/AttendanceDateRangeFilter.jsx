@@ -1,5 +1,6 @@
 import Button from '../ui/Button.jsx';
 import TextField from '../ui/TextField.jsx';
+import MarkedAttendanceOnlyField from './MarkedAttendanceOnlyField.jsx';
 
 export default function AttendanceDateRangeFilter({
   startDate,
@@ -8,6 +9,9 @@ export default function AttendanceDateRangeFilter({
   onEndDateChange,
   onApply,
   onReset,
+  markedAttendanceOnly,
+  onMarkedAttendanceOnlyChange,
+  showMarkedAttendanceOnly = false,
   loading,
 }) {
   return (
@@ -28,6 +32,14 @@ export default function AttendanceDateRangeFilter({
         onChange={(e) => onEndDateChange(e.target.value)}
         className="min-w-0 w-full flex-1 sm:min-w-40"
       />
+      {showMarkedAttendanceOnly ? (
+        <MarkedAttendanceOnlyField
+          checked={Boolean(markedAttendanceOnly)}
+          onChange={onMarkedAttendanceOnlyChange}
+          disabled={loading}
+          className="w-full sm:flex-1 sm:min-w-[12rem]"
+        />
+      ) : null}
       <div className="flex w-full shrink-0 flex-col gap-2 sm:flex-row sm:w-auto">
         {onReset ? (
           <Button

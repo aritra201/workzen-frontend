@@ -4,7 +4,7 @@ import CompanyAttendanceListPage from '../shared/CompanyAttendanceListPage.jsx';
 export default function AdminAttendancePage() {
   return (
     <CompanyAttendanceListPage
-      title="Company attendance"
+      title="Employee Attendance List"
       detailBasePath={ROUTES.admin.attendanceDetail}
     />
   );

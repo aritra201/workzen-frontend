@@ -32,6 +32,7 @@ export default function CompanyAttendanceListPage({
   const [startDate, setStartDate] = useState(initialRange.startDate);
   const [endDate, setEndDate] = useState(initialRange.endDate);
   const [employeeIds, setEmployeeIds] = useState([]);
+  const [markedAttendanceOnly, setMarkedAttendanceOnly] = useState(false);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
@@ -40,7 +41,13 @@ export default function CompanyAttendanceListPage({
   const [error, setError] = useState('');
 
   const load = useCallback(
-    async ({ from, to, pageNum = page, employees = employeeIds } = {}) => {
+    async ({
+      from,
+      to,
+      pageNum = page,
+      employees = employeeIds,
+      markedOnly = markedAttendanceOnly,
+    } = {}) => {
       setLoading(true);
       setError('');
       try {
@@ -58,6 +65,9 @@ export default function CompanyAttendanceListPage({
         if (employeeIdParam) {
           params.employeeId = employeeIdParam;
         }
+        if (markedOnly) {
+          params.markedAttendance = 'true';
+        }
         const data = await listCompanyAttendance(params);
         setRecords(getCompanyAttendanceListItems(data));
         setTotal(data.total ?? 0);
@@ -72,7 +82,7 @@ export default function CompanyAttendanceListPage({
         setLoading(false);
       }
     },
-    [startDate, endDate, statusFilter, page, employeeIds]
+    [startDate, endDate, statusFilter, page, employeeIds, markedAttendanceOnly]
   );
 
   useEffect(() => {
@@ -82,7 +92,13 @@ export default function CompanyAttendanceListPage({
 
   function handleApply() {
     setPage(1);
-    load({ from: startDate, to: endDate, pageNum: 1, employees: employeeIds });
+    load({
+      from: startDate,
+      to: endDate,
+      pageNum: 1,
+      employees: employeeIds,
+      markedOnly: markedAttendanceOnly,
+    });
   }
 
   function handleReset() {
@@ -90,18 +106,20 @@ export default function CompanyAttendanceListPage({
     setStartDate(range.startDate);
     setEndDate(range.endDate);
     setEmployeeIds([]);
+    setMarkedAttendanceOnly(false);
     setPage(1);
     load({
       from: range.startDate,
       to: range.endDate,
       pageNum: 1,
       employees: [],
+      markedOnly: false,
     });
   }
 
   function handlePageChange(nextPage) {
     setPage(nextPage);
-    load({ pageNum: nextPage, employees: employeeIds });
+    load({ pageNum: nextPage, employees: employeeIds, markedOnly: markedAttendanceOnly });
   }
 
   const rangeStart = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
@@ -133,6 +151,8 @@ export default function CompanyAttendanceListPage({
         onEmployeeIdsChange={setEmployeeIds}
         onApply={handleApply}
         onReset={handleReset}
+        markedAttendanceOnly={markedAttendanceOnly}
+        onMarkedAttendanceOnlyChange={setMarkedAttendanceOnly}
         loading={loading}
       />
 

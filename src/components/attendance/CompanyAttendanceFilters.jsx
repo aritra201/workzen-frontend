@@ -1,6 +1,7 @@
 import Button from '../ui/Button.jsx';
 import TextField from '../ui/TextField.jsx';
 import EmployeeFilterSelect from '../admin/EmployeeFilterSelect.jsx';
+import MarkedAttendanceOnlyField from './MarkedAttendanceOnlyField.jsx';
 
 export default function CompanyAttendanceFilters({
   startDate,
@@ -11,6 +12,8 @@ export default function CompanyAttendanceFilters({
   onEmployeeIdsChange,
   onApply,
   onReset,
+  markedAttendanceOnly,
+  onMarkedAttendanceOnlyChange,
   loading,
 }) {
   return (
@@ -39,6 +42,12 @@ export default function CompanyAttendanceFilters({
           onChange={onEmployeeIdsChange}
           disabled={loading}
           className="min-w-0 w-full flex-1 lg:max-w-sm"
+        />
+        <MarkedAttendanceOnlyField
+          checked={Boolean(markedAttendanceOnly)}
+          onChange={onMarkedAttendanceOnlyChange}
+          disabled={loading}
+          className="w-full lg:w-auto lg:self-end"
         />
         <div className="flex w-full shrink-0 flex-col gap-2 sm:flex-row lg:w-auto">
           {onReset ? (
