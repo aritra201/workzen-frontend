@@ -6,6 +6,19 @@ import {
   applyPhoneNationalInput,
 } from '../../utils/inputFilters.js';
 
+const DATE_FIELD_TYPES = new Set(['date', 'datetime-local', 'month', 'time', 'week']);
+
+function DateFieldCalendarIcon() {
+  return (
+    <Icon
+      name="calendar_month"
+      size={20}
+      className="pointer-events-none absolute right-3.5 top-1/2 z-[1] -translate-y-1/2 text-on-surface-variant"
+      aria-hidden
+    />
+  );
+}
+
 function PasswordVisibilityToggle({ visible, onToggle }) {
   return (
     <button
@@ -35,6 +48,7 @@ export default function TextField({
   ...inputProps
 }) {
   const isPasswordField = type === 'password';
+  const isDateField = DATE_FIELD_TYPES.has(type);
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [filterError, setFilterError] = useState('');
   const resolvedType = isPasswordField ? (passwordVisible ? 'text' : 'password') : type;
@@ -47,8 +61,13 @@ export default function TextField({
             onToggle={() => setPasswordVisible((v) => !v)}
           />
         )
-      : null);
-  const paddingRight = resolvedSuffix ? 'pr-11' : 'pr-4';
+      : isDateField
+        ? <DateFieldCalendarIcon />
+        : null);
+  const trailingAffordance = Boolean(resolvedSuffix);
+  const horizontalPadding = icon
+    ? `pl-11 ${trailingAffordance ? 'pr-11' : 'pr-4'}`
+    : `pl-4 ${trailingAffordance ? 'pr-11' : 'pr-4'}`;
   const displayError = error || filterError;
 
   function handleChange(event) {
@@ -106,7 +125,7 @@ export default function TextField({
         ) : null}
         <input
           id={id}
-          className={`h-12 w-full max-w-full rounded-lg border text-base text-on-surface placeholder:text-on-surface-variant/60 focus:outline-none transition-all md:text-sm ${displayError ? 'border-error focus:shadow-[0_0_0_2px_#ba1a1a]' : 'border-outline-variant/40 focus:shadow-[0_0_0_2px_#00685f]'} bg-surface-container-lowest ${icon ? `pl-11 ${paddingRight}` : `px-4 ${suffix ? 'pr-11' : ''}`} ${inputClassName}`}
+          className={`h-12 w-full max-w-full rounded-lg border text-base text-on-surface placeholder:text-on-surface-variant/60 focus:outline-none transition-all md:text-sm ${displayError ? 'border-error focus:shadow-[0_0_0_2px_#ba1a1a]' : 'border-outline-variant/40 focus:shadow-[0_0_0_2px_#00685f]'} bg-surface-container-lowest ${horizontalPadding} ${isDateField ? 'date-field-input relative' : ''} ${inputClassName}`}
           type={resolvedType}
           onChange={handleChange}
           {...inputProps}

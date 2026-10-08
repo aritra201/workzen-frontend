@@ -166,6 +166,23 @@
     font-variant-numeric: tabular-nums;
     font-feature-settings: 'tnum' 1;
   }
+
+  /* Hide native date icon only; TextField shows theme-aware calendar_month */
+  .date-field-input::-webkit-calendar-picker-indicator {
+    position: absolute;
+    right: 0.5rem;
+    width: 2.25rem;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .date-field-input::-moz-calendar-picker-indicator {
+    opacity: 0;
+    cursor: pointer;
+  }
 }
 
 @layer utilities {
