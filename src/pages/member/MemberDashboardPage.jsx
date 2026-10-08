@@ -8,7 +8,7 @@ export default function MemberDashboardPage() {
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">Member overview</h1>
       <p className="text-on-surface-variant">
-        Read-only access to {primaryMembership?.companyName || 'company'} attendance records.
+        Read-only access to {primaryMembership?.companyName || 'company'} attendance and payroll.
         Activity history for each record is available when you open a shift from the attendance list.
       </p>
       <div className="grid gap-4 sm:grid-cols-2">
@@ -18,6 +18,13 @@ export default function MemberDashboardPage() {
         >
           <p className="font-semibold">Attendance ledger</p>
           <p className="text-sm text-on-surface-variant">View verified and pending shifts</p>
+        </Link>
+        <Link
+          to={ROUTES.member.reports}
+          className="rounded-xl bg-surface-container-lowest p-5 shadow-card hover:shadow-md"
+        >
+          <p className="font-semibold">Payroll & reports</p>
+          <p className="text-sm text-on-surface-variant">Marked shifts and amounts by date range</p>
         </Link>
         <Link
           to={ROUTES.member.profile}

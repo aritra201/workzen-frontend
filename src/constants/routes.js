@@ -27,6 +27,7 @@ export const ROUTES = {
     root: '/member',
     dashboard: '/member/dashboard',
     attendance: '/member/attendance',
+    reports: '/member/reports',
     profile: '/member/profile',
     attendanceDetail: '/member/attendance/record',
   },

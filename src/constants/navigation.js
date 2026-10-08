@@ -14,6 +14,7 @@ export const ADMIN_NAV = [
 export const MEMBER_NAV = [
   { to: ROUTES.member.dashboard, label: 'Overview', icon: 'dashboard', end: true },
   { to: ROUTES.member.attendance, label: 'Attendance', icon: 'how_to_reg', end: true },
+  { to: ROUTES.member.reports, label: 'Payroll & Reports', icon: 'payments', end: true },
   { to: ROUTES.member.profile, label: 'My profile', icon: 'person', end: true },
 ];
 

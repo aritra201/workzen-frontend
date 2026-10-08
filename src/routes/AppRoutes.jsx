@@ -26,6 +26,7 @@ import AdminReportsPage from '../pages/admin/AdminReportsPage.jsx';
 import MemberDashboardPage from '../pages/member/MemberDashboardPage.jsx';
 import MemberAttendancePage from '../pages/member/MemberAttendancePage.jsx';
 import MemberProfilePage from '../pages/member/MemberProfilePage.jsx';
+import MemberReportsPage from '../pages/member/MemberReportsPage.jsx';
 import EmployeeDashboardPage from '../pages/employee/EmployeeDashboardPage.jsx';
 import EmployeeAttendancePage from '../pages/employee/EmployeeAttendancePage.jsx';
 import EmployeeAttendanceHistoryPage from '../pages/employee/EmployeeAttendanceHistoryPage.jsx';
@@ -115,6 +116,7 @@ export default function AppRoutes() {
         <Route index element={<Navigate to={ROUTES.member.dashboard} replace />} />
         <Route path="dashboard" element={<MemberDashboardPage />} />
         <Route path="attendance" element={<MemberAttendancePage />} />
+        <Route path="reports" element={<MemberReportsPage />} />
         <Route path="profile" element={<MemberProfilePage />} />
         <Route
           path="attendance/record"

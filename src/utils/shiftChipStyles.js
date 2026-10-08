@@ -1,3 +1,4 @@
+import { SHIFT_META } from '../constants/shifts.js';
 import { isHalfShiftKey } from './halfShifts.js';
 
 /**
@@ -25,10 +26,14 @@ export const SHIFT_CHIP_DOT_CLASS = {
   halfShift: 'bg-violet-800 dark:bg-violet-300',
 };
 
-/** Maps response/api keys (e.g. half_shift_1) to SHIFT_CHIP_CLASS keys. */
+/** Maps response/api keys (e.g. half_shift_1, extra_day) to SHIFT_CHIP_CLASS keys. */
 export function resolveShiftChipPaletteKey(responseKey) {
   if (isHalfShiftKey(responseKey)) {
     return 'halfShift';
+  }
+  const fromApiKey = SHIFT_META[responseKey]?.responseKey;
+  if (fromApiKey) {
+    return fromApiKey;
   }
   return responseKey;
 }
