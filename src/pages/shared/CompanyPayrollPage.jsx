@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { listMyPayroll, listPayroll } from '../../api/payroll.js';
+import { downloadPayrollCsv, listMyPayroll, listPayroll } from '../../api/payroll.js';
 import {
   getAttendanceEmployeeName,
   getAttendanceEmployeeProfilePicture,
@@ -17,6 +17,8 @@ import LoadingSpinner from '../../components/common/LoadingSpinner.jsx';
 import PersonAvatar from '../../components/ui/PersonAvatar.jsx';
 import TableCard from '../../components/common/TableCard.jsx';
 import { MobileListCard, MobileListStack } from '../../components/common/MobileList.jsx';
+import Button from '../../components/ui/Button.jsx';
+import { useToast } from '../../hooks/useToast.js';
 
 const DEFAULT_RANGE_DAYS = 30;
 const PAGE_SIZE = 20;
@@ -37,7 +39,9 @@ export default function CompanyPayrollPage({
   const [summary, setSummary] = useState(null);
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
   const [error, setError] = useState('');
+  const toast = useToast();
 
   const load = useCallback(
     async ({ from, to, pageNum = page, employees = employeeIds } = {}) => {
@@ -104,6 +108,26 @@ export default function CompanyPayrollPage({
     load({ pageNum: nextPage, employees: employeeIds });
   }
 
+  async function handleExportCsv() {
+    setExporting(true);
+    try {
+      const params = {
+        startDate,
+        endDate,
+      };
+      const employeeIdParam = employeeIdsQueryParam(employeeIds);
+      if (employeeIdParam) {
+        params.employeeId = employeeIdParam;
+      }
+      await downloadPayrollCsv(params);
+      toast.success('Payroll CSV downloaded.');
+    } catch (err) {
+      toast.error(err.message || 'Could not export payroll CSV.');
+    } finally {
+      setExporting(false);
+    }
+  }
+
   const rangeStart = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
   const rangeEnd = Math.min(page * PAGE_SIZE, total);
 
@@ -113,15 +137,29 @@ export default function CompanyPayrollPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">{title}</h1>
-        <p className="text-sm text-on-surface-variant">
-          {employeeScope
-            ? `Your confirmed shifts and amounts — default last ${DEFAULT_RANGE_DAYS} days.`
-            : readOnly
-              ? 'View-only payroll from confirmed shifts — filter by date and employee.'
-              : `Payroll from confirmed shifts only — default last ${DEFAULT_RANGE_DAYS} days. Filter by date and employee.`}
-        </p>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">{title}</h1>
+          <p className="text-sm text-on-surface-variant">
+            {employeeScope
+              ? `Your confirmed shifts and amounts — default last ${DEFAULT_RANGE_DAYS} days.`
+              : readOnly
+                ? 'View-only payroll from confirmed shifts — filter by date and employee.'
+                : `Payroll from confirmed shifts only — default last ${DEFAULT_RANGE_DAYS} days. Filter by date and employee.`}
+          </p>
+        </div>
+        {!employeeScope ? (
+          <Button
+            type="button"
+            variant="outline"
+            loading={exporting}
+            disabled={loading}
+            className="w-full shrink-0 sm:w-auto"
+            onClick={handleExportCsv}
+          >
+            Export CSV
+          </Button>
+        ) : null}
       </div>
 
       {employeeScope ? (
