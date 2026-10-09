@@ -18,6 +18,8 @@ import StatusChip from '../../components/ui/StatusChip.jsx';
 import ShiftHighlightChips from '../../components/ui/ShiftHighlightChips.jsx';
 import WorkPicturesGallery from '../../components/attendance/WorkPicturesGallery.jsx';
 import ShiftWorkCommentPanel from '../../components/attendance/ShiftWorkCommentPanel.jsx';
+import ShiftCommentThreadList from '../../components/attendance/ShiftCommentThreadList.jsx';
+import { getCommentThreadForShiftKey } from '../../utils/commentThreads.js';
 import AttendanceActivityLogSection from '../../components/attendance/AttendanceActivityLogSection.jsx';
 import AccordionSection from '../../components/ui/AccordionSection.jsx';
 import { AccordionGroup } from '../../components/ui/AccordionGroup.jsx';
@@ -195,6 +197,7 @@ export default function AttendanceRecordDetailPage({ mode, backTo }) {
                   </p>
                 </div>
                 <WorkPicturesGallery shift={shift} compact />
+                <ShiftCommentThreadList commentThread={getCommentThreadForShiftKey(record, key)} />
                 {mode === 'admin' && shift.status === 'pending_verification' ? (
                   <Button size="sm" onClick={() => openVerifyModal(key, shiftKey, shift)}>
                     Verify shift
