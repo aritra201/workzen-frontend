@@ -13,6 +13,7 @@ import TextField from '../../components/ui/TextField.jsx';
 import GoogleSignInButton from '../../components/auth/GoogleSignInButton.jsx';
 import ErrorMessage from '../../components/common/ErrorMessage.jsx';
 import LoadingSpinner from '../../components/common/LoadingSpinner.jsx';
+import OpenInMobileAppBanner from '../../components/invitations/OpenInMobileAppBanner.jsx';
 
 export default function AcceptMemberInvitePage() {
   const [params] = useSearchParams();
@@ -76,6 +77,7 @@ export default function AcceptMemberInvitePage() {
 
   return (
     <div className="mx-auto w-full max-w-md rounded-xl bg-surface-container-lowest p-8 shadow-md">
+      <OpenInMobileAppBanner kind="member" token={token} />
       <h1 className="text-2xl font-semibold">Join as member</h1>
       <p className="mt-2 text-sm text-on-surface-variant">
         {preview?.memberName ? (
