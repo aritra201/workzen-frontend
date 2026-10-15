@@ -6,6 +6,8 @@ import TextField from '../../components/ui/TextField.jsx';
 import Modal, { ModalActions } from '../../components/ui/Modal.jsx';
 import PersonAvatar from '../../components/ui/PersonAvatar.jsx';
 import StatusChangeConfirmModal from '../../components/admin/StatusChangeConfirmModal.jsx';
+import ResendInviteConfirmModal from '../../components/admin/ResendInviteConfirmModal.jsx';
+import { useToast } from '../../hooks/useToast.js';
 import ErrorMessage from '../../components/common/ErrorMessage.jsx';
 import LoadingSpinner from '../../components/common/LoadingSpinner.jsx';
 import StatusChip from '../../components/ui/StatusChip.jsx';
@@ -35,6 +37,8 @@ export default function AdminMembersPage() {
   const [inviteForm, setInviteForm] = useState({ memberName: '', email: '' });
   const [busy, setBusy] = useState(false);
   const [statusConfirm, setStatusConfirm] = useState(null);
+  const [resendConfirm, setResendConfirm] = useState(null);
+  const toast = useToast();
 
   const load = useCallback(async (pageNum = page) => {
     setLoading(true);
@@ -76,13 +80,19 @@ export default function AdminMembersPage() {
     }
   }
 
-  async function handleResend(member) {
+  async function applyResendInvite() {
+    if (!resendConfirm) return;
+    setBusy(true);
     setError('');
     try {
-      await resendMemberInvite({ email: member.email });
+      const res = await resendMemberInvite({ email: resendConfirm.email });
+      setResendConfirm(null);
       await load(page);
+      toast.success(res?.message || 'Member invitation resent.');
     } catch (err) {
       setError(err.message);
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -151,7 +161,7 @@ export default function AdminMembersPage() {
                 </div>
                 <div className="mt-4 flex flex-wrap gap-2">
                   {invitationPending ? (
-                    <Button size="sm" variant="secondary" onClick={() => handleResend(member)}>
+                    <Button size="sm" variant="secondary" onClick={() => setResendConfirm(member)}>
                       Resend invite
                     </Button>
                   ) : null}
@@ -220,7 +230,7 @@ export default function AdminMembersPage() {
                     </td>
                     <td className="px-4 py-3 text-right space-x-2">
                       {invitationPending ? (
-                        <Button size="sm" variant="secondary" onClick={() => handleResend(member)}>
+                        <Button size="sm" variant="secondary" onClick={() => setResendConfirm(member)}>
                           Resend invite
                         </Button>
                       ) : null}
@@ -304,6 +314,16 @@ export default function AdminMembersPage() {
         loading={busy}
         onCancel={() => !busy && setStatusConfirm(null)}
         onConfirm={applyStatusChange}
+      />
+
+      <ResendInviteConfirmModal
+        open={Boolean(resendConfirm)}
+        kind="member"
+        personLabel={resendConfirm?.name}
+        email={resendConfirm?.email}
+        loading={busy}
+        onCancel={() => !busy && setResendConfirm(null)}
+        onConfirm={applyResendInvite}
       />
     </div>
   );

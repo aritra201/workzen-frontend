@@ -8,6 +8,8 @@ import OtpInput from '../../components/ui/OtpInput.jsx';
 import Button from '../../components/ui/Button.jsx';
 import ErrorMessage from '../../components/common/ErrorMessage.jsx';
 import TextField from '../../components/ui/TextField.jsx';
+import ResendVerificationConfirmModal from '../../components/auth/ResendVerificationConfirmModal.jsx';
+import { useToast } from '../../hooks/useToast.js';
 
 export default function VerifyEmailPage() {
   const navigate = useNavigate();
@@ -15,9 +17,10 @@ export default function VerifyEmailPage() {
   const { loginWithTokens } = useAuth();
   const [email, setEmail] = useState(location.state?.email || '');
   const [otp, setOtp] = useState('');
-  const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [resendOpen, setResendOpen] = useState(false);
+  const toast = useToast();
 
   async function handleVerify(event) {
     event.preventDefault();
@@ -37,13 +40,21 @@ export default function VerifyEmailPage() {
     }
   }
 
-  async function handleResend() {
+  async function handleResendConfirm() {
+    const trimmed = email.trim();
+    if (!trimmed) {
+      setError('Enter your email before resending a code.');
+      setResendOpen(false);
+      return;
+    }
     setError('');
-    setMessage('');
     setBusy(true);
     try {
-      const res = await resendVerification({ email });
-      setMessage(res.message);
+      const res = await resendVerification({ email: trimmed });
+      setResendOpen(false);
+      toast.success(
+        res?.message || 'If that email is registered and unverified, a new code has been sent.'
+      );
     } catch (err) {
       setError(err.message);
     } finally {
@@ -56,8 +67,6 @@ export default function VerifyEmailPage() {
       <h1 className="text-2xl font-semibold">Verify your email</h1>
       <p className="mt-2 text-sm text-on-surface-variant">Enter the 4-digit code we sent to your inbox.</p>
       <ErrorMessage message={error} className="mt-4 text-left" />
-      {message ? <p className="mt-4 text-sm text-primary">{message}</p> : null}
-
       <form onSubmit={handleVerify} className="mt-8 space-y-6">
         <TextField
           id="verify-email"
@@ -74,12 +83,25 @@ export default function VerifyEmailPage() {
         </Button>
       </form>
 
-      <button type="button" onClick={handleResend} className="mt-4 text-sm font-semibold text-primary" disabled={busy}>
+      <button
+        type="button"
+        onClick={() => setResendOpen(true)}
+        className="mt-4 text-sm font-semibold text-primary"
+        disabled={busy}
+      >
         Resend code
       </button>
       <p className="mt-6 text-sm">
         <Link to={ROUTES.login}>Back to login</Link>
       </p>
+
+      <ResendVerificationConfirmModal
+        open={resendOpen}
+        email={email.trim()}
+        loading={busy}
+        onCancel={() => !busy && setResendOpen(false)}
+        onConfirm={handleResendConfirm}
+      />
     </div>
   );
 }
