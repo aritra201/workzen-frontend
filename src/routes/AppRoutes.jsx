@@ -8,6 +8,8 @@ import EmployeeShell from '../components/layout/EmployeeShell.jsx';
 import ProtectedRoute from './ProtectedRoute.jsx';
 import RoleRoute from './RoleRoute.jsx';
 import HomePage from '../pages/public/HomePage.jsx';
+import PrivacyPolicyPage from '../pages/public/PrivacyPolicyPage.jsx';
+import TermsOfServicePage from '../pages/public/TermsOfServicePage.jsx';
 import LoginPage from '../pages/auth/LoginPage.jsx';
 import RegisterPage from '../pages/auth/RegisterPage.jsx';
 import VerifyEmailPage from '../pages/auth/VerifyEmailPage.jsx';
@@ -64,6 +66,15 @@ export default function AppRoutes() {
             <HomePage />
           </PublicShell>
         }
+      />
+
+      <Route
+        path="/privacy"
+        element={<PublicShell><PrivacyPolicyPage /></PublicShell>}
+      />
+      <Route
+        path="/terms"
+        element={<PublicShell><TermsOfServicePage /></PublicShell>}
       />
 
       <Route element={<AuthShell />}>
