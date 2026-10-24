@@ -16,6 +16,7 @@ function clearFields(setters) {
 
 export default function ChangePasswordSection({ className = '' }) {
   const [authProvider, setAuthProvider] = useState(null);
+  const [hasPassword, setHasPassword] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -32,6 +33,7 @@ export default function ChangePasswordSection({ className = '' }) {
       .then((me) => {
         if (!cancelled) {
           setAuthProvider(me.auth_provider || 'local');
+          setHasPassword(Boolean(me.has_password));
         }
       })
       .catch((err) => {
@@ -93,6 +95,7 @@ export default function ChangePasswordSection({ className = '' }) {
     try {
       const result = await changePassword({ currentPassword, newPassword });
       setMessage(result?.message || 'Password updated successfully.');
+      setHasPassword(true);
       closeFormModal();
       clearFields({ setCurrentPassword, setNewPassword, setConfirmPassword });
     } catch (err) {
@@ -111,13 +114,19 @@ export default function ChangePasswordSection({ className = '' }) {
     );
   }
 
-  if (authProvider === 'google') {
+  if (authProvider === 'google' && !hasPassword) {
     return (
       <section className={`rounded-xl bg-surface-container-lowest p-5 shadow-card ${className}`}>
         <h2 className="text-base font-semibold text-on-surface">Password</h2>
         <p className="mt-2 text-sm text-on-surface-variant">
-          You sign in with Google. Password is managed by your Google account, not WorkZen.
+          You sign in with Google. Your Google account password is managed at Google. If you also sign in with
+          email, you can reset your WorkZen password below.
         </p>
+        <div className="mt-4">
+          <Link to={ROUTES.forgotPassword} className="text-sm font-semibold text-primary">
+            Forgot password?
+          </Link>
+        </div>
       </section>
     );
   }
