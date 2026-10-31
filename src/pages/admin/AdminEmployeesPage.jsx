@@ -4,6 +4,7 @@ import {
   listEmployees,
   patchEmployee,
   resendEmployeeInvite,
+  cancelEmployeeInvite,
   updateEmployeeStatus,
 } from '../../api/employees.js';
 import { formatCurrencyInr } from '../../utils/format.js';
@@ -17,6 +18,7 @@ import Modal, { ModalActions } from '../../components/ui/Modal.jsx';
 import PersonAvatar from '../../components/ui/PersonAvatar.jsx';
 import StatusChangeConfirmModal from '../../components/admin/StatusChangeConfirmModal.jsx';
 import ResendInviteConfirmModal from '../../components/admin/ResendInviteConfirmModal.jsx';
+import CancelInviteConfirmModal from '../../components/admin/CancelInviteConfirmModal.jsx';
 import { useToast } from '../../hooks/useToast.js';
 import ErrorMessage from '../../components/common/ErrorMessage.jsx';
 import LoadingSpinner from '../../components/common/LoadingSpinner.jsx';
@@ -50,6 +52,7 @@ export default function AdminEmployeesPage() {
   const [busy, setBusy] = useState(false);
   const [statusConfirm, setStatusConfirm] = useState(null);
   const [resendConfirm, setResendConfirm] = useState(null);
+  const [cancelConfirm, setCancelConfirm] = useState(null);
   const toast = useToast();
   const [amountEdit, setAmountEdit] = useState(null);
   const [amountEditError, setAmountEditError] = useState('');
@@ -162,6 +165,22 @@ export default function AdminEmployeesPage() {
     }
   }
 
+  async function applyCancelInvite() {
+    if (!cancelConfirm) return;
+    setBusy(true);
+    setError('');
+    try {
+      const res = await cancelEmployeeInvite({ employeeEmail: cancelConfirm.employeeEmail });
+      setCancelConfirm(null);
+      await load(page, filterEmployeeIds);
+      toast.success(res?.message || 'Invitation cancelled.');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function applyStatusChange() {
     if (!statusConfirm) return;
     const { employee, nextActive } = statusConfirm;
@@ -252,9 +271,14 @@ export default function AdminEmployeesPage() {
                     Edit daily amount
                   </Button>
                   {invitationPending ? (
-                    <Button size="sm" variant="secondary" onClick={() => setResendConfirm(employee)}>
-                      Resend invite
-                    </Button>
+                    <>
+                      <Button size="sm" variant="secondary" onClick={() => setResendConfirm(employee)}>
+                        Resend invite
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => setCancelConfirm(employee)}>
+                        Cancel invite
+                      </Button>
+                    </>
                   ) : null}
                   {canDeactivate ? (
                     <Button
@@ -330,13 +354,18 @@ export default function AdminEmployeesPage() {
                     </td>
                     <td className="px-4 py-3 text-right space-x-2">
                       {invitationPending ? (
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          onClick={() => setResendConfirm(employee)}
-                        >
-                          Resend invite
-                        </Button>
+                        <>
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            onClick={() => setResendConfirm(employee)}
+                          >
+                            Resend invite
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => setCancelConfirm(employee)}>
+                            Cancel invite
+                          </Button>
+                        </>
                       ) : null}
                       {canDeactivate ? (
                         <Button
@@ -474,6 +503,16 @@ export default function AdminEmployeesPage() {
         loading={busy}
         onCancel={() => !busy && setResendConfirm(null)}
         onConfirm={applyResendInvite}
+      />
+
+      <CancelInviteConfirmModal
+        open={Boolean(cancelConfirm)}
+        kind="employee"
+        personLabel={cancelConfirm?.employeeName}
+        email={cancelConfirm?.employeeEmail}
+        loading={busy}
+        onCancel={() => !busy && setCancelConfirm(null)}
+        onConfirm={applyCancelInvite}
       />
     </div>
   );

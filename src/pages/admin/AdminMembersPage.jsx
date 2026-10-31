@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { inviteMember, listMembers, resendMemberInvite, updateMemberStatus } from '../../api/members.js';
+import { inviteMember, listMembers, resendMemberInvite, cancelMemberInvite, updateMemberStatus } from '../../api/members.js';
 import ListPagination from '../../components/common/ListPagination.jsx';
 import Button from '../../components/ui/Button.jsx';
 import TextField from '../../components/ui/TextField.jsx';
@@ -7,6 +7,7 @@ import Modal, { ModalActions } from '../../components/ui/Modal.jsx';
 import PersonAvatar from '../../components/ui/PersonAvatar.jsx';
 import StatusChangeConfirmModal from '../../components/admin/StatusChangeConfirmModal.jsx';
 import ResendInviteConfirmModal from '../../components/admin/ResendInviteConfirmModal.jsx';
+import CancelInviteConfirmModal from '../../components/admin/CancelInviteConfirmModal.jsx';
 import { useToast } from '../../hooks/useToast.js';
 import ErrorMessage from '../../components/common/ErrorMessage.jsx';
 import LoadingSpinner from '../../components/common/LoadingSpinner.jsx';
@@ -38,6 +39,7 @@ export default function AdminMembersPage() {
   const [busy, setBusy] = useState(false);
   const [statusConfirm, setStatusConfirm] = useState(null);
   const [resendConfirm, setResendConfirm] = useState(null);
+  const [cancelConfirm, setCancelConfirm] = useState(null);
   const toast = useToast();
 
   const load = useCallback(async (pageNum = page) => {
@@ -89,6 +91,22 @@ export default function AdminMembersPage() {
       setResendConfirm(null);
       await load(page);
       toast.success(res?.message || 'Member invitation resent.');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function applyCancelInvite() {
+    if (!cancelConfirm) return;
+    setBusy(true);
+    setError('');
+    try {
+      const res = await cancelMemberInvite({ email: cancelConfirm.email });
+      setCancelConfirm(null);
+      await load(page);
+      toast.success(res?.message || 'Invitation cancelled.');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -161,9 +179,14 @@ export default function AdminMembersPage() {
                 </div>
                 <div className="mt-4 flex flex-wrap gap-2">
                   {invitationPending ? (
-                    <Button size="sm" variant="secondary" onClick={() => setResendConfirm(member)}>
-                      Resend invite
-                    </Button>
+                    <>
+                      <Button size="sm" variant="secondary" onClick={() => setResendConfirm(member)}>
+                        Resend invite
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => setCancelConfirm(member)}>
+                        Cancel invite
+                      </Button>
+                    </>
                   ) : null}
                   {canDeactivate ? (
                     <Button
@@ -230,9 +253,14 @@ export default function AdminMembersPage() {
                     </td>
                     <td className="px-4 py-3 text-right space-x-2">
                       {invitationPending ? (
-                        <Button size="sm" variant="secondary" onClick={() => setResendConfirm(member)}>
-                          Resend invite
-                        </Button>
+                        <>
+                          <Button size="sm" variant="secondary" onClick={() => setResendConfirm(member)}>
+                            Resend invite
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => setCancelConfirm(member)}>
+                            Cancel invite
+                          </Button>
+                        </>
                       ) : null}
                       {canDeactivate ? (
                         <Button
@@ -324,6 +352,16 @@ export default function AdminMembersPage() {
         loading={busy}
         onCancel={() => !busy && setResendConfirm(null)}
         onConfirm={applyResendInvite}
+      />
+
+      <CancelInviteConfirmModal
+        open={Boolean(cancelConfirm)}
+        kind="member"
+        personLabel={cancelConfirm?.name}
+        email={cancelConfirm?.email}
+        loading={busy}
+        onCancel={() => !busy && setCancelConfirm(null)}
+        onConfirm={applyCancelInvite}
       />
     </div>
   );

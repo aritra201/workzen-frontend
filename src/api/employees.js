@@ -43,6 +43,13 @@ export function resendEmployeeInvite(body) {
   });
 }
 
+export function cancelEmployeeInvite(body) {
+  return apiRequest('/api/employees/invitations/cancel', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}
+
 export function updateEmployeeStatus(employeeId, body) {
   return apiRequest(`/api/employees/${employeeId}`, {
     method: 'PATCH',
