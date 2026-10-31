@@ -4,6 +4,7 @@ import { downloadPayrollCsv, listMyPayroll, listPayroll } from '../../api/payrol
 import {
   getAttendanceEmployeeName,
   getAttendanceEmployeeProfilePicture,
+  countPayrollShifts,
 } from '../../utils/companyAttendanceList.js';
 import { listRangeLastDays } from '../../utils/myAttendanceList.js';
 import { employeeIdsQueryParam } from '../../utils/employeeIds.js';
@@ -232,6 +233,7 @@ export default function CompanyPayrollPage({
         <MobileListStack className={loading ? 'opacity-60' : ''}>
           {records.map((row) => {
             const employeeName = getAttendanceEmployeeName(row);
+            const shiftCount = countPayrollShifts(row);
             return (
               <MobileListCard key={row.attendanceId}>
                 {employeeScope ? (
@@ -251,6 +253,7 @@ export default function CompanyPayrollPage({
                   </div>
                 )}
                 <div className="mt-3">
+                  <p className="label-caps mb-1 text-outline">Shifts · {shiftCount}</p>
                   <PayrollShiftAmountList shifts={row.shifts} />
                 </div>
                 <p className="label-numeric mt-3 text-base font-semibold text-on-surface">
@@ -280,6 +283,7 @@ export default function CompanyPayrollPage({
                 <th className="label-caps px-3 py-2 text-outline">Employee</th>
               ) : null}
               <th className="label-caps px-3 py-2 text-outline">Date</th>
+              <th className="label-caps px-3 py-2 text-outline">Shift count</th>
               <th className="label-caps px-3 py-2 text-outline md:min-w-[12rem]">Shifts</th>
               <th className="label-caps px-3 py-2 text-outline">Day total</th>
               <th className="label-caps px-3 py-2 text-right text-outline">Detail</th>
@@ -288,6 +292,7 @@ export default function CompanyPayrollPage({
           <tbody>
             {records.map((row) => {
               const employeeName = getAttendanceEmployeeName(row);
+              const shiftCount = countPayrollShifts(row);
               return (
                 <tr
                   key={row.attendanceId}
@@ -307,6 +312,7 @@ export default function CompanyPayrollPage({
                     </td>
                   ) : null}
                   <td className="px-3 py-2">{formatDateLabel(row.date)}</td>
+                  <td className="label-numeric px-3 py-2 text-on-surface">{shiftCount}</td>
                   <td className="px-3 py-2">
                     <PayrollShiftAmountList shifts={row.shifts} />
                   </td>

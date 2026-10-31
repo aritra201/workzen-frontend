@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { sumShiftAmounts } from '../../utils/myAttendanceList.js';
+import { countMarkedShifts } from '../../utils/companyAttendanceList.js';
 import AttendanceShiftStatusPairs from '../attendance/AttendanceShiftStatusPairs.jsx';
 import StatusChip from '../ui/StatusChip.jsx';
 import { formatCurrencyInr, formatDateLabel } from '../../utils/format.js';
@@ -28,6 +29,7 @@ export default function EmployeeAttendanceHistoryTable({
       <MobileListStack>
         {records.map((row) => {
           const totalAmount = sumShiftAmounts(row.shifts);
+          const shiftCount = countMarkedShifts(row.shifts);
           const attendanceKey = String(row.attendanceId);
           const unlockPending = pendingAttendanceIds?.has(attendanceKey);
           return (
@@ -39,7 +41,7 @@ export default function EmployeeAttendanceHistoryTable({
                 </StatusChip>
               </div>
               <div className="mt-3">
-                <p className="label-caps mb-1 text-outline">Shifts</p>
+                <p className="label-caps mb-1 text-outline">Shifts · {shiftCount}</p>
                 <AttendanceShiftStatusPairs shifts={row.shifts} />
               </div>
               <p className="mt-3 label-numeric text-on-surface">
@@ -74,6 +76,7 @@ export default function EmployeeAttendanceHistoryTable({
         <thead className="border-b border-outline-variant/40 bg-surface-container-low">
           <tr>
             <th className="label-caps px-3 py-2 text-outline">Date</th>
+            <th className="label-caps px-3 py-2 text-outline">Shift count</th>
             <th className="label-caps px-3 py-2 text-outline md:min-w-[14rem]">
               <span className="grid grid-cols-[minmax(5.5rem,7rem)_minmax(0,1fr)] gap-x-4">
                 <span>Shift</span>
@@ -88,6 +91,7 @@ export default function EmployeeAttendanceHistoryTable({
         <tbody>
           {records.map((row) => {
             const totalAmount = sumShiftAmounts(row.shifts);
+            const shiftCount = countMarkedShifts(row.shifts);
             const attendanceKey = String(row.attendanceId);
             const unlockPending = pendingAttendanceIds?.has(attendanceKey);
             return (
@@ -96,6 +100,7 @@ export default function EmployeeAttendanceHistoryTable({
                 className="border-t border-outline-variant/30 hover:bg-surface-container-high/50"
               >
                 <td className="px-3 py-2">{formatDateLabel(row.date)}</td>
+                <td className="label-numeric px-3 py-2 text-on-surface">{shiftCount}</td>
                 <td className="px-3 py-2">
                   <AttendanceShiftStatusPairs shifts={row.shifts} />
                 </td>
