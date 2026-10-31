@@ -4,44 +4,37 @@ import { isHalfShiftKey } from './halfShifts.js';
 
 export function shiftFromResponse(attendance, shiftKey) {
   const meta = SHIFT_META[shiftKey];
-  if (!meta) {
+  if (meta) {
+    const data = attendance?.shifts?.[meta.responseKey];
+    return data ?? { marked: false };
+  }
+  if (isHalfShiftKey(shiftKey)) {
     return null;
   }
-  const data = attendance?.shifts?.[meta.responseKey];
-  return data ?? { marked: false };
+  return null;
 }
 
 export function isShiftVisible(_attendance, shiftKey) {
   return Boolean(SHIFT_META[shiftKey]) || isHalfShiftKey(shiftKey);
 }
 
-/** Cards shown on Mark attendance (fixed shifts + dynamic half shift slots). */
+/** Cards shown on Mark attendance (fixed shifts including half day / half night). */
 export function listMarkAttendanceShiftItems(attendance) {
   const fixedOrder = [
     SHIFT_KEY.DAY,
     SHIFT_KEY.NIGHT,
     SHIFT_KEY.EXTRA_DAY,
     SHIFT_KEY.EXTRA_NIGHT,
+    SHIFT_KEY.HALF_SHIFT_DAY,
+    SHIFT_KEY.HALF_SHIFT_NIGHT,
   ];
-  const fixed = fixedOrder
+  return fixedOrder
     .filter((key) => isShiftVisible(attendance, key))
     .map((shiftKey) => ({
       shiftKey,
       shift: shiftFromResponse(attendance, shiftKey),
       accordionId: shiftKey,
     }));
-
-  const half = (attendance?.shifts?.halfShifts ?? []).map((entry) => {
-    const shift =
-      entry?.marked ? entry : { ...entry, status: undefined };
-    return {
-      shiftKey: entry.shiftKey,
-      shift,
-      accordionId: entry.shiftKey,
-    };
-  });
-
-  return [...fixed, ...half];
 }
 
 export function statusTone(status, lockAttendance) {

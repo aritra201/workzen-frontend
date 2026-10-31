@@ -3,7 +3,7 @@ import { parseHalfShiftSlot } from '../../utils/halfShifts.js';
 import { shiftChipClassName } from '../../utils/shiftChipStyles.js';
 import StatusChip from '../ui/StatusChip.jsx';
 
-const SHIFT_ORDER = ['day', 'night', 'extraDay', 'extraNight'];
+const SHIFT_ORDER = ['day', 'night', 'extraDay', 'extraNight', 'halfShiftDay', 'halfShiftNight'];
 
 function shiftEntrySortIndex(responseKey) {
   const fixedIdx = SHIFT_ORDER.indexOf(responseKey);

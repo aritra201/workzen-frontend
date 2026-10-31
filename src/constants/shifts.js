@@ -3,10 +3,8 @@ export const SHIFT_KEY = {
   NIGHT: 'night',
   EXTRA_DAY: 'extra_day',
   EXTRA_NIGHT: 'extra_night',
-  HALF_SHIFT_1: 'half_shift_1',
-  HALF_SHIFT_2: 'half_shift_2',
-  HALF_SHIFT_3: 'half_shift_3',
-  HALF_SHIFT_4: 'half_shift_4',
+  HALF_SHIFT_DAY: 'half_shift_day',
+  HALF_SHIFT_NIGHT: 'half_shift_night',
 };
 
 export const SHIFT_META = {
@@ -14,6 +12,16 @@ export const SHIFT_META = {
   [SHIFT_KEY.NIGHT]: { label: 'Night Shift', short: 'Night', responseKey: 'night' },
   [SHIFT_KEY.EXTRA_DAY]: { label: 'Extra Day', short: 'Extra Day', responseKey: 'extraDay' },
   [SHIFT_KEY.EXTRA_NIGHT]: { label: 'Extra Night', short: 'Extra Night', responseKey: 'extraNight' },
+  [SHIFT_KEY.HALF_SHIFT_DAY]: {
+    label: 'Half Shift Day',
+    short: 'Half Day',
+    responseKey: 'halfShiftDay',
+  },
+  [SHIFT_KEY.HALF_SHIFT_NIGHT]: {
+    label: 'Half Shift Night',
+    short: 'Half Night',
+    responseKey: 'halfShiftNight',
+  },
 };
 
 export const SHIFT_STATUS = {

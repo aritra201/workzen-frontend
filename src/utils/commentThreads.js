@@ -1,18 +1,27 @@
-import { parseHalfShiftSlot } from './halfShifts.js';
+import { isHalfShiftKey, normalizeHalfShiftApiKey } from './halfShifts.js';
+import { responseKeyToApiShiftKey } from './shiftLabels.js';
 
 /**
- * Resolves comment thread payload for a shift accordion key (e.g. day, half_shift_1).
+ * Resolves comment thread payload for a shift accordion key (e.g. day, halfShiftDay).
  */
 export function getCommentThreadForShiftKey(record, shiftResponseKey) {
   const threads = record?.commentThreads;
   if (!threads) {
     return null;
   }
-  if (parseHalfShiftSlot(shiftResponseKey)) {
-    const list = threads.halfShifts || [];
-    return list.find((t) => t?.shiftKey === shiftResponseKey) ?? null;
+
+  if (threads[shiftResponseKey]) {
+    return threads[shiftResponseKey];
   }
-  return threads[shiftResponseKey] ?? null;
+
+  const apiKey = responseKeyToApiShiftKey(shiftResponseKey);
+  if (isHalfShiftKey(apiKey)) {
+    const normalized = normalizeHalfShiftApiKey(apiKey);
+    const legacyList = threads.halfShifts || [];
+    return legacyList.find((t) => normalizeHalfShiftApiKey(t?.shiftKey) === normalized) ?? null;
+  }
+
+  return null;
 }
 
 /** Index 0 mirrors shift.comment (FR-073); list thread replies separately. */

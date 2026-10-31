@@ -28,6 +28,9 @@ export const SHIFT_CHIP_DOT_CLASS = {
 
 /** Maps response/api keys (e.g. half_shift_1, extra_day) to SHIFT_CHIP_CLASS keys. */
 export function resolveShiftChipPaletteKey(responseKey) {
+  if (responseKey === 'halfShiftDay' || responseKey === 'halfShiftNight') {
+    return 'halfShift';
+  }
   if (isHalfShiftKey(responseKey)) {
     return 'halfShift';
   }
