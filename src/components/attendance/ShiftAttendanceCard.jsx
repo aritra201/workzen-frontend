@@ -1,16 +1,18 @@
 import { useEffect, useState } from 'react';
-import { confirmShift, updateShiftDetails } from '../../api/attendance.js';
+import { confirmShift, cancelShift, updateShiftDetails } from '../../api/attendance.js';
 import { SHIFT_META } from '../../constants/shifts.js';
 import { getShiftDisplayMeta, isHalfShiftKey } from '../../utils/halfShifts.js';
 import { formatCurrencyInr, formatDateLabel } from '../../utils/format.js';
 import { getSubmitGeoLocation } from '../../utils/geolocation.js';
 import {
+  canEmployeeCancelShift,
   isShiftDetailsLockedForEmployee,
   statusLabel,
   statusTone,
 } from '../../utils/attendanceUi.js';
 import { SHIFT_STATUS } from '../../constants/shifts.js';
 import ShiftConfirmModal from './ShiftConfirmModal.jsx';
+import ShiftCancelModal from './ShiftCancelModal.jsx';
 import EmployeeShiftWorkPictures from './EmployeeShiftWorkPictures.jsx';
 import { getShiftWorkPictureUrls } from './WorkPicturesGallery.jsx';
 import AccordionSection from '../ui/AccordionSection.jsx';
@@ -32,6 +34,7 @@ export default function ShiftAttendanceCard({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [cancelOpen, setCancelOpen] = useState(false);
 
   useEffect(() => {
     setComment(shift?.comment ?? '');
@@ -41,6 +44,7 @@ export default function ShiftAttendanceCard({
   const locked = attendance?.lockAttendance || !attendance?.canEdit;
   const detailsLocked = isShiftDetailsLockedForEmployee(shift, attendance);
   const disabled = readOnly || locked || detailsLocked;
+  const canCancel = !readOnly && canEmployeeCancelShift(shift, attendance);
   const verified = shift?.status === SHIFT_STATUS.VERIFIED;
   const hasShiftAmount =
     shift?.amount != null && !Number.isNaN(Number(shift.amount)) && Number(shift.amount) > 0;
@@ -80,6 +84,20 @@ export default function ShiftAttendanceCard({
       }
       await confirmShift({ geoLocation: geo }, { shiftKey, attendanceDate });
       setConfirmOpen(false);
+      await onUpdated();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleCancel() {
+    setError('');
+    setBusy(true);
+    try {
+      await cancelShift({ shiftKey, attendanceDate });
+      setCancelOpen(false);
       await onUpdated();
     } catch (err) {
       setError(err.message);
@@ -178,9 +196,15 @@ export default function ShiftAttendanceCard({
                 variant="secondary"
                 onClick={handleSaveComment}
                 disabled={busy || !comment.trim() || !commentDirty}
-                loading={busy && !confirmOpen}
+                loading={busy && !confirmOpen && !cancelOpen}
               >
                 Save comment
+              </Button>
+            ) : null}
+
+            {canCancel ? (
+              <Button variant="outline" onClick={() => setCancelOpen(true)} disabled={busy}>
+                Cancel shift
               </Button>
             ) : null}
           </div>
@@ -200,6 +224,19 @@ export default function ShiftAttendanceCard({
           }
         }}
         onConfirm={handleConfirm}
+      />
+
+      <ShiftCancelModal
+        open={cancelOpen}
+        shiftLabel={meta.label}
+        dateLabel={formatDateLabel(attendance?.date, { weekday: true })}
+        loading={busy}
+        onClose={() => {
+          if (!busy) {
+            setCancelOpen(false);
+          }
+        }}
+        onConfirm={handleCancel}
       />
     </>
   );
